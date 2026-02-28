@@ -9,14 +9,24 @@ import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import { ArrowLeft, MapPin, Calendar, CheckCircle, X, Lock, User, Phone } from "lucide-react";
 import { mockRequests, mockMatches } from "../../data/mockData";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { fetchRequestById } from "../../store/slices/requestSlice";
+import { useDispatch } from "react-redux";
 
 export default function NGORequestDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const {selectedRequest,loading} = useSelector((state) => state.requests)
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const dispatch = useDispatch();
 
-  const request = mockRequests.find(r => r.id === id);
+  const request = selectedRequest;
   const relatedMatches = mockMatches.filter(m => m.requestId === id);
+
+  useEffect(() => {
+    dispatch(fetchRequestById(id));
+  }, [id,dispatch]);
 
   if (!request) {
     return (
@@ -54,7 +64,7 @@ export default function NGORequestDetail() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{request.id}</h1>
-                <p className="text-gray-600">{request.disasterType} Relief Request</p>
+                <p className="text-gray-600">{request.disaster_type} Relief Request</p>
               </div>
             </div>
           </div>
@@ -71,7 +81,7 @@ export default function NGORequestDetail() {
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Request Overview</h2>
                     <div className="flex gap-2">
                       <StatusBadge status={request.status} />
-                      <PriorityBadge priority={request.urgency} />
+                      <PriorityBadge priority={request.urgency_level} />
                     </div>
                   </div>
                   <div className="text-right">
@@ -124,7 +134,7 @@ export default function NGORequestDetail() {
                     <tbody>
                       {request.items.map((item, idx) => (
                         <tr key={idx} className="border-t">
-                          <td className="p-3 font-medium">{item.name}</td>
+                          <td className="p-3 font-medium">{item.item_name}</td>
                           <td className="p-3">{item.quantity}</td>
                           <td className="p-3">
                             <span className="px-2 py-1 bg-gray-100 rounded text-sm">{item.category}</span>
@@ -148,7 +158,7 @@ export default function NGORequestDetail() {
               </Card>
 
               {/* Matches */}
-              <Card className="p-6">
+              {/* <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Matched Donors & Volunteers ({relatedMatches.length})
                 </h2>
@@ -228,7 +238,7 @@ export default function NGORequestDetail() {
                     </div>
                   )}
                 </div>
-              </Card>
+              </Card> */}
             </div>
 
             {/* Sidebar */}
@@ -272,11 +282,13 @@ export default function NGORequestDetail() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Donor Matches</span>
-                    <span className="font-bold text-blue-600">{request.matches.donors}</span>
+                    {/* <span className="font-bold text-blue-600">{request.matches.donors}</span> */}
+                    <span className="font-bold text-blue-600">10</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Volunteer Matches</span>
-                    <span className="font-bold text-green-600">{request.matches.volunteers}</span>
+                    {/* <span className="font-bold text-green-600">{request.matches.volunteers}</span> */}
+                    <span className="font-bold text-green-600">10</span>
                   </div>
                 </div>
               </Card>

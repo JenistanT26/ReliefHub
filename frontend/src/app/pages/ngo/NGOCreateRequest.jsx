@@ -22,6 +22,7 @@ export default function NGOCreateRequest() {
     latitude: null || 80.2707, 
     longitude: null || 13.0827,
     urgency_level: "",
+    ai_priority_score:0 || 92,
     description: "",
     items: []
   });
@@ -29,7 +30,7 @@ export default function NGOCreateRequest() {
     name: "",
     quantity: "",
     category: "",
-    critical: "Standard"
+    critical: false
   });
 
   const addItem = () => {
@@ -38,7 +39,7 @@ export default function NGOCreateRequest() {
         ...formData,
         items: [...formData.items, { ...currentItem }]
       });
-      setCurrentItem({ name: "", quantity: "", category: "", critical: "Standard" });
+      setCurrentItem({ name: "", quantity: "", category: "", critical:false });
     }
   };
 
@@ -189,7 +190,7 @@ export default function NGOCreateRequest() {
                     type="checkbox"
                     id="critical"
                     checked={currentItem.critical}
-                    onChange={(e) => setCurrentItem({ ...currentItem, critical: e.target.checked ?"Critical":"Standard" })}
+                    onChange={(e) => setCurrentItem({ ...currentItem, critical: e.target.checked })}
                   />
                   <Label htmlFor="critical" className="font-normal cursor-pointer">
                     Mark as critical item

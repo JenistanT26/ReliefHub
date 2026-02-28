@@ -1,5 +1,6 @@
 import Request from '../models/Request.js'
 import ReqItem from '../models/ReqItem.js'
+import Counter from '../models/Counter.js'
 
 //creating a relief request
 export const createReq = async (req,res)=>{
@@ -9,9 +10,17 @@ export const createReq = async (req,res)=>{
     
     // console.log(req.body)
     // Create main request
+    const counter = await Counter.findOneAndUpdate(
+      { name: "request" },
+      { $inc: { seq: 1 } },
+      { returnDocument: "after", upsert: true }
+    );
+    const requestCode = `REQ-${String(counter.seq).padStart(3, "0")}`;
+
     const request = await Request.create({
       ngo_id: '123456',
-      disaster_type:disaster_type?.toLowerCase(),
+      disaster_type,
+      request_code: requestCode,
       description,
       urgency_level,
       location: {
@@ -26,7 +35,7 @@ export const createReq = async (req,res)=>{
       item_name: item.name,
       quantity: Number(item.quantity),
       category: item.category,
-      status:item.critical
+      status:item.critical?"Critical":"Standard"
     }));
 
     await ReqItem.insertMany(itemDocs);
@@ -47,10 +56,10 @@ export const getMyreq = async (req,res)=>{
      try {
     const requests = await Request.find({
       ngo_id: '123456'
-    });
+    }).populate("items");
     res.status(200).json({
       success: true,
-      data: requests,
+      data:requests,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

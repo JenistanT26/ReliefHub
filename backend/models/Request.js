@@ -1,5 +1,7 @@
 // models/Request.js
 import mongoose from "mongoose";
+// import "../models/ReqItem.js"
+import './ReqItem.js'
 
 const requestSchema = new mongoose.Schema({
   ngo_id: {
@@ -8,7 +10,7 @@ const requestSchema = new mongoose.Schema({
   },
   disaster_type :{
     type:String,
-    enum: ["flood","earthquake","cyclone","fire","drought","landslide"]
+    enum: ["Flood","Earthquake","Cyclone","Fire","Drought","Landslide"]
   },
 
   description: {
@@ -33,6 +35,13 @@ const requestSchema = new mongoose.Schema({
       required: true,
     },
   },
+  request_code: {
+    type: String,
+    unique: true,
+  },
+  ai_priority_score:{
+    type:Number
+  },
 
   status: {
     type: String,
@@ -44,5 +53,13 @@ const requestSchema = new mongoose.Schema({
 );
 
 requestSchema.index({ location: "2dsphere" });
+requestSchema.virtual("items", {
+  ref: "RequestItem",
+  localField: "_id",
+  foreignField: "request_id"
+});
+
+requestSchema.set("toObject", { virtuals: true });
+requestSchema.set("toJSON", { virtuals: true });
 
 export default mongoose.model("Request", requestSchema);
