@@ -1,0 +1,14 @@
+backend---
+    day 1: 
+        -setuped the database connection with mongo atlas as well as in localhost for experiments
+        -created the models such as,
+            1.request 
+            2.reqItem
+        -created the route such as,
+            1.reqRoute - containing all the ReliefRequest related routes
+        -created the controller for "reqRoute" file
+            1.createReq
+            2.getMyreq
+            3.getOpenRequests
+            4.getRequestById
+            5.updateRequestStatus
