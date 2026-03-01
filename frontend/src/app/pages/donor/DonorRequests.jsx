@@ -8,6 +8,7 @@ import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import { Search, MapPin, Package } from "lucide-react";
 import { mockRequests, categories } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 
 export default function DonorRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,12 +33,11 @@ export default function DonorRequests() {
       <Sidebar role="donor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Available Requests</h1>
-            <p className="text-gray-600">Browse and respond to relief requests</p>
-          </div>
-        </div>
+        <Header 
+          title="Available Requests" 
+          subtitle="Browse and respond to relief requests" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Filters */}

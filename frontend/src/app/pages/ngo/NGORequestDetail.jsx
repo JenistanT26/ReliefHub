@@ -9,6 +9,7 @@ import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import { ArrowLeft, MapPin, Calendar, CheckCircle, X, Lock, User, Phone } from "lucide-react";
 import { mockRequests, mockMatches } from "../../data/mockData";
 import { toast } from "sonner";
+import Header from "../../components/shared/Header";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import { fetchRequestById } from "../../store/slices/requestSlice";
@@ -56,19 +57,18 @@ export default function NGORequestDetail() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center gap-4 mb-2">
+        <Header 
+          title={
+            <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => navigate("/ngo/requests")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{request.id}</h1>
-                <p className="text-gray-600">{request.disaster_type} Relief Request</p>
-              </div>
+              {request.id}
             </div>
-          </div>
-        </div>
+          }
+          subtitle={`${request.disaster_type} Relief Request`}
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <div className="grid lg:grid-cols-3 gap-6">

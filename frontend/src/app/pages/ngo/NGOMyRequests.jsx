@@ -6,8 +6,9 @@ import { Input } from "../../components/ui/input";
 import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import StatusBadge from "../../components/shared/StatusBadge";
-import { Search, Filter, MapPin, Package } from "lucide-react";
+import { Search, Filter, MapPin, Package, Calendar, Activity } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 import { fetchRequests, setSelectedRequest } from "../../store/slices/requestSlice.js";
 import { useSelector,useDispatch } from "react-redux";
 
@@ -54,12 +55,16 @@ export default function NGOMyRequests() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
-            <p className="text-gray-600">View and manage all your relief requests</p>
-          </div>
-        </div>
+        <Header 
+          title="My Requests" 
+          subtitle="Manage your outgoing relief requests and their matched responses." 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <Link to="/ngo/create-request">
+              <Button className="bg-blue-600 hover:bg-blue-700">Create New Request</Button>
+            </Link>
+          }
+        />
 
         <div className="p-6">
           {/* Filters */}
