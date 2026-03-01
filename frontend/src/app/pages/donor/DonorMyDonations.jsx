@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import Sidebar from "../../components/shared/Sidebar";
 import StatusBadge from "../../components/shared/StatusBadge";
 import { Package, MapPin, Calendar } from "lucide-react";
+import Header from "../../components/shared/Header";
 
 export default function DonorMyDonations() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -80,12 +81,11 @@ export default function DonorMyDonations() {
       <Sidebar role="donor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">My Donations</h1>
-            <p className="text-gray-600">Track all your donation activities</p>
-          </div>
-        </div>
+        <Header 
+          title="My Donations" 
+          subtitle="Track all your donation activities" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <Tabs defaultValue="all">

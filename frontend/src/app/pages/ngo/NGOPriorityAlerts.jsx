@@ -6,6 +6,7 @@ import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import { AlertTriangle, Clock, MapPin } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 
 export default function NGOPriorityAlerts() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,12 +25,11 @@ export default function NGOPriorityAlerts() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Priority Alerts</h1>
-            <p className="text-gray-600">Requests sorted by AI priority score</p>
-          </div>
-        </div>
+        <Header 
+          title="Priority Alerts" 
+          subtitle="Requests sorted by AI priority score" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Filters */}

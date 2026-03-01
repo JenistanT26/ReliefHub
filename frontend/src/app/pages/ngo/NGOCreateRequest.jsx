@@ -11,14 +11,19 @@ import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import { Plus, X, AlertCircle } from "lucide-react";
 import { disasters, categories } from "../../data/mockData";
 import { toast } from "sonner";
+import API from "../../api/axios";
+import Header from "../../components/shared/Header";
+// import api from '../../api/axios'
 
 export default function NGOCreateRequest() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [formData, setFormData] = useState({
-    disasterType: "",
-    location: { name: "Select location on map", lat: null, lng: null },
-    urgency: "",
+    disaster_type: "",
+    latitude: null || 80.2707, 
+    longitude: null || 13.0827,
+    urgency_level: "",
+    ai_priority_score:0 || 92,
     description: "",
     items: []
   });
@@ -33,9 +38,9 @@ export default function NGOCreateRequest() {
     if (currentItem.name && currentItem.quantity && currentItem.category) {
       setFormData({
         ...formData,
-        items: [...formData.items, { ...currentItem, id: Date.now() }]
+        items: [...formData.items, { ...currentItem }]
       });
-      setCurrentItem({ name: "", quantity: "", category: "", critical: false });
+      setCurrentItem({ name: "", quantity: "", category: "", critical:false });
     }
   };
 
@@ -52,8 +57,14 @@ export default function NGOCreateRequest() {
       toast.error("Please add at least one item to the request");
       return;
     }
-    toast.success("Relief request created successfully!");
-    navigate("/ngo/requests");
+    try {
+      const response = API.post('/request',formData)
+      toast.success("Relief request created successfully!");
+      navigate("/ngo/requests");
+    } catch (error) {
+      console.error(error.response?.data || error.message);
+    }
+    
   };
 
   return (
@@ -61,12 +72,11 @@ export default function NGOCreateRequest() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Create Relief Request</h1>
-            <p className="text-gray-600">Submit a new disaster relief request</p>
-          </div>
-        </div>
+        <Header 
+          title="Create Relief Request" 
+          subtitle="Submit a new disaster relief request" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <Card className="max-w-4xl mx-auto p-8">
@@ -74,7 +84,7 @@ export default function NGOCreateRequest() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="disasterType">Disaster Type *</Label>
-                  <Select value={formData.disasterType} onValueChange={(value) => setFormData({ ...formData, disasterType: value })} required>
+                  <Select value={formData.disaster_type} onValueChange={(value) => setFormData({ ...formData, disaster_type: value })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select disaster type" />
                     </SelectTrigger>
@@ -90,7 +100,7 @@ export default function NGOCreateRequest() {
 
                 <div>
                   <Label htmlFor="urgency">Urgency Level *</Label>
-                  <Select value={formData.urgency} onValueChange={(value) => setFormData({ ...formData, urgency: value })} required>
+                  <Select value={formData.urgency_level} onValueChange={(value) => setFormData({ ...formData, urgency_level: value })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Select urgency" />
                     </SelectTrigger>
