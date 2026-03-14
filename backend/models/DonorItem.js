@@ -1,29 +1,31 @@
-// models/DonorItem.js
 import mongoose from "mongoose";
 
-const donorItemSchema = new mongoose.Schema(
-{
+const donorItemSchema = new mongoose.Schema({
+
   donor_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Donor",
-    required: true,
+    ref: "User",
+    required: true
   },
 
   item_name: {
     type: String,
-    required: true,
+    required: true
   },
 
-  quantity_submitted: {
+  category: String,
+
+  quantity: {
     type: Number,
-    required: true,
+    required: true
   },
 
-  category: {
+  status: {
     type: String,
-  },
-},
-{ timestamps: true }
-);
+    enum: ["available","reserved","donated"],
+    default: "available"
+  }
+
+}, { timestamps: true });
 
 export default mongoose.model("DonorItem", donorItemSchema);

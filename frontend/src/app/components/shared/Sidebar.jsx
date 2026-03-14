@@ -32,7 +32,6 @@ const roleMenus = {
     { icon: LayoutDashboard, label: "Dashboard", path: "/donor/dashboard" },
     { icon: List, label: "Available Requests", path: "/donor/requests" },
     { icon: Heart, label: "My Donations", path: "/donor/my-donations" },
-    { icon: History, label: "History", path: "/donor/my-donations" },
     { icon: User, label: "Profile", path: "/profile" }
   ],
   volunteer: [
