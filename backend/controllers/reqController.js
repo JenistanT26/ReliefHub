@@ -121,3 +121,36 @@ export const updateRequestStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+//delete Request
+export const deleteRequest = async (req, res) => {
+  try {
+    const request = await Request.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      request,
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+//Edit existing Request
+export const editRequest = async (req,res)=>{
+  try {
+    const {disaster_type,description,urgency_level,longitude=1234,latitude=123,items} = req.body;
+    const request = await Request.findByIdAndUpdate(
+      req.params.id,
+      {disaster_type,description,urgency_level,longitude,latitude,items},
+      {new:true}
+    )
+    res.status(200).json({
+      success:true,
+      request,
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

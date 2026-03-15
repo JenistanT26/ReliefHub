@@ -14,14 +14,16 @@ import {
   Building2,
   BarChart3,
   Shield,
-  Menu
+  Menu,
+  Handshake
 } from "lucide-react";
 import { cn } from "../ui/utils";
 
 const roleMenus = {
   ngo: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/ngo/dashboard" },
-    { icon: FileText, label: "Create Request", path: "/ngo/create-request" },
+    { icon: FileText, label: "Relief Request", path: "/ngo/create-request" },
+    { icon: Handshake, label: "Volunteer Request", path: "/ngo/create-volunteer-request" },
     { icon: List, label: "My Requests", path: "/ngo/requests" },
     { icon: Users, label: "Matches", path: "/ngo/matches" },
     { icon: AlertTriangle, label: "Priority Alerts", path: "/ngo/priority-alerts" },

@@ -1,5 +1,5 @@
 import express from "express";
-import { createReq, getMyreq, getOpenRequests, getRequestById, updateRequestStatus } from "../controllers/reqController.js";
+import { createReq, deleteRequest, editRequest, getMyreq, getOpenRequests, getRequestById, updateRequestStatus } from "../controllers/reqController.js";
 
 const router=express.Router()
 
@@ -11,6 +11,9 @@ router.route('/request/open')
 router.route('/request/:id')
                 .get(getRequestById)
                 .patch(updateRequestStatus)
+                .delete(deleteRequest)
+router.route('/request/edit/:id')
+                .patch(editRequest)
 
 
 export default router

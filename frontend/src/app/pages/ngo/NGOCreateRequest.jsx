@@ -14,10 +14,13 @@ import { toast } from "sonner";
 import API from "../../api/axios";
 import Header from "../../components/shared/Header";
 // import api from '../../api/axios'
+import {useDispatch,useSelector} from 'react-redux'
+import { createRequest } from "../../store/slices/requestSlice";
 
 export default function NGOCreateRequest() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const dispatch =useDispatch()
   const [formData, setFormData] = useState({
     disaster_type: "",
     latitude: null || 80.2707, 
@@ -33,6 +36,8 @@ export default function NGOCreateRequest() {
     category: "",
     critical: false
   });
+
+  // const {requests,loading} = useSelector((state)=>state.requests)
 
   const addItem = () => {
     if (currentItem.name && currentItem.quantity && currentItem.category) {
@@ -58,7 +63,8 @@ export default function NGOCreateRequest() {
       return;
     }
     try {
-      const response = API.post('/request',formData)
+      // const response = API.post('/request',formData)
+      dispatch(createRequest(formData))
       toast.success("Relief request created successfully!");
       navigate("/ngo/requests");
     } catch (error) {
