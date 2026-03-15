@@ -18,6 +18,11 @@ const requestItemSchema = new mongoose.Schema({
     required: true,
   },
   
+  quantity_fullfilled: {
+    type: Number,
+    required: true,
+  },
+
   status:{
     type:String,
     default:"Standard"
