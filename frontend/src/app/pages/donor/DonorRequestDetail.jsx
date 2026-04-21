@@ -73,7 +73,6 @@ export default function DonorRequestDetail() {
     quantity_submitted: Number(donItem.quantity),
     category: request.items.find((i) => i.item_name === donItem.item)?.category || "general",
     request_item_id: request.items.find((i) => i.item_name === donItem.item)?._id,
-    delivery_time: donItem.deliveryTime || null,
   }));
 
   try {
@@ -90,7 +89,7 @@ export default function DonorRequestDetail() {
     dispatch(fetchDonationIntentsByRequestId(request._id));
     navigate("/donor/my-donations");
   } catch (err) {
-    console.log(err.message);
+    console.log(err.message );
     toast.error("Failed to submit donation intent: " + (err.message || err.error || "error"));
   }
 };

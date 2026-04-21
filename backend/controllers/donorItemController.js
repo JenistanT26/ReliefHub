@@ -86,7 +86,7 @@ export const getDonorItemById = async (req, res) => {
   }
 };
 
-/* 5️⃣ Submit Donation Intent */
+/* 5️⃣ Submit Donation Intent for Manual */
 export const submitDonationIntent = async (req, res) => {
 
   const session = await mongoose.startSession();
@@ -254,11 +254,9 @@ export const getDonationIntentsByRequestId = async (req, res) => {
   try {
 
     const intents = await DonationIntent.find({
-      relief_request_id: req.params.requestId
+      relief_request_id: new mongoose.Types.ObjectId(req.params.id)
     })
       .populate("donor_item_id")
-      .populate("request_item_id")
-      .populate("relief_request_id");
 
     res.status(200).json({
       success: true,

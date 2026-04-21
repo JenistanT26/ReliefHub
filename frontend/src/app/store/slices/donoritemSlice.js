@@ -84,9 +84,9 @@ export const fetchDonationIntents = createAsyncThunk(
 
 export const fetchDonationIntentsByRequestId = createAsyncThunk(
   "donor/fetchByRequestItem",
-  async (requestItemId, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      const res = await API.get(`/request/${requestId}`);
+      const res = await API.get(`/donation-intents/requestId/${id}`);
       return res.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || error.message);
@@ -95,7 +95,7 @@ export const fetchDonationIntentsByRequestId = createAsyncThunk(
 );
 
 export const fetchDonationIntentsByRequestItemId = createAsyncThunk(
-  "donor/fetchByRequestItem",
+  "donor/fetchByRequestItemId",
   async (requestItemId, { rejectWithValue }) => {
     try {
       const res = await API.get(`/request-item/${requestItemId}`);
@@ -139,11 +139,10 @@ const donorSlice = createSlice({
   name: "donor",
 
   initialState: {
+    relatedMatches: [],
     donorItems: [],
     selectedDonorItem: null,
-
     donationIntents: [],
-
     loading: false,
     error: null
   },
@@ -161,35 +160,68 @@ const donorSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* CREATE DONOR ITEM */
+      /* ===========================
+         CREATE DONOR ITEM
+      =========================== */
+
+      .addCase(createDonorItem.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
       .addCase(createDonorItem.fulfilled, (state, action) => {
+        state.loading = false;
         state.donorItems.push(action.payload);
       })
 
-      /* FETCH ALL DONOR ITEMS */
+      .addCase(createDonorItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      /* ===========================
+         FETCH DONOR ITEMS
+      =========================== */
+
+      .addCase(fetchAllDonorItems.pending, (state) => {
+        state.loading = true;
+      })
+
       .addCase(fetchAllDonorItems.fulfilled, (state, action) => {
+        state.loading = false;
         state.donorItems = action.payload;
       })
 
-      /* FETCH DONOR ITEMS BY DONOR */
+      .addCase(fetchAllDonorItems.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
       .addCase(fetchDonorItemsByDonorId.fulfilled, (state, action) => {
         state.donorItems = action.payload;
       })
 
-      /* FETCH SINGLE DONOR ITEM */
       .addCase(fetchDonorItemById.fulfilled, (state, action) => {
         state.selectedDonorItem = action.payload;
       })
 
 
-      /* SUBMIT DONATION */
+      /* ===========================
+         SUBMIT DONATION INTENT
+      =========================== */
+
       .addCase(submitDonationIntent.fulfilled, (state, action) => {
         state.donorItems.push(...action.payload.donorItems);
         state.donationIntents.push(...action.payload.intents);
       })
 
 
-      /* FETCH INTENTS */
+      /* ===========================
+         FETCH INTENTS
+      =========================== */
+
       .addCase(fetchDonationIntents.fulfilled, (state, action) => {
         state.donationIntents = action.payload;
       })
@@ -202,8 +234,28 @@ const donorSlice = createSlice({
         state.donationIntents = action.payload;
       })
 
+      /* ===========================
+         FETCH INTENTS BY REQ ID
+      =========================== */
 
-      /* UPDATE STATUS */
+      
+      .addCase(fetchDonationIntentsByRequestId.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchDonationIntentsByRequestId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.relatedMatches = action.payload;
+      })
+      .addCase(fetchDonationIntentsByRequestId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      /* ===========================
+         UPDATE INTENT STATUS
+      =========================== */
+
       .addCase(updateDonationIntentStatus.fulfilled, (state, action) => {
         const index = state.donationIntents.findIndex(
           (intent) => intent._id === action.payload._id
@@ -215,6 +267,11 @@ const donorSlice = createSlice({
       });
   }
 });
+
+
+/* ===========================
+   EXPORTS
+=========================== */
 
 export const { clearDonorState } = donorSlice.actions;
 

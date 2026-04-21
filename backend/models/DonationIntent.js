@@ -17,13 +17,11 @@ const donationIntentSchema = new mongoose.Schema({
   request_item_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "RequestItem",
-    required: true
   },
 
   relief_request_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Request",
-    required: true
   },
 
   quantity_offered: Number,

@@ -15,7 +15,10 @@ import {
   BarChart3,
   Shield,
   Menu,
-  Handshake
+  Handshake,
+  CheckSquare2,
+  Highlighter,
+  PenIcon
 } from "lucide-react";
 import { cn } from "../ui/utils";
 
@@ -33,6 +36,7 @@ const roleMenus = {
   donor: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/donor/dashboard" },
     { icon: List, label: "Available Requests", path: "/donor/requests" },
+    { icon: PenIcon, label: "Create Donation Items", path: "/donor/create-request" },
     { icon: Heart, label: "My Donations", path: "/donor/my-donations" },
     { icon: User, label: "Profile", path: "/profile" }
   ],

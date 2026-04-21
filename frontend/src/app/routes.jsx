@@ -15,6 +15,7 @@ import NGOPriorityAlerts from "./pages/ngo/NGOPriorityAlerts";
 import NGODonations from "./pages/ngo/NGODonations";
 import DonorDashboard from "./pages/donor/DonorDashboard";
 import DonorRequests from "./pages/donor/DonorRequests";
+import DonorCreateRequest from "./pages/donor/DonorCreateRequest";
 import DonorRequestDetail from "./pages/donor/DonorRequestDetail";
 import DonorMyDonations from "./pages/donor/DonorMyDonations";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
@@ -90,6 +91,10 @@ export const router = createBrowserRouter([
   {
     path: "/donor/requests",
     Component: DonorRequests,
+  },
+  {
+    path: "/donor/create-request",
+    Component: DonorCreateRequest,
   },
   {
     path: "/donor/requests/:id",

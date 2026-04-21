@@ -36,7 +36,7 @@ router.route("/donation-intent")
 router.route("/donation-intent/:id")
   .patch(updateDonationIntentStatus);
 
-router.route("/request/:requestId")
+router.route("/donation-intents/requestId/:id")
   .get(getDonationIntentsByRequestId);
 
 router.route("/request-item/:requestItemId")
