@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -6,76 +6,76 @@ import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import StatusBadge from "../../components/shared/StatusBadge";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
-import { ArrowLeft, MapPin, Calendar, CheckCircle, X, Lock, User, Phone } from "lucide-react";
-import { mockRequests, mockMatches } from "../../data/mockData";
+import {
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  CheckCircle,
+  X,
+  Lock,
+  User
+} from "lucide-react";
 import { toast } from "sonner";
 import Header from "../../components/shared/Header";
-import { useSelector } from "react-redux";
-import { useEffect } from "react";
-import { fetchDonationIntentsByRequestId } from "../../store/slices/donoritemSlice";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchDonationIntentsByRequestId,
+  updateDonationIntentStatus
+} from "../../store/slices/donoritemSlice";
 import { fetchRequestById } from "../../store/slices/requestSlice";
-import { useDispatch } from "react-redux";
+import useReverseGeocoding from "../../components/shared/ReverseGeocoding";
 
 export default function NGORequestDetail() {
   const { id } = useParams();
-  console.log(id);
   const navigate = useNavigate();
-  const {selectedRequest,loading} = useSelector((state) => state.requests)
-  const { relatedMatches, loading: matchesLoading } = useSelector((state) => state.donorItems);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const dispatch = useDispatch();
 
+  const { selectedRequest } = useSelector((state) => state.requests);
+  const { relatedMatches, loading } = useSelector(
+    (state) => state.donorItems
+  );
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const request = selectedRequest;
-  
-  const groupedMatches = Object.values(
-  relatedMatches.reduce((acc, match) => {
-    const donorId = match.donor_id;
 
-    if (!acc[donorId]) {
-      acc[donorId] = {
-        donor_id: donorId,
-        items: [],
-        matches: []
-      };
-    }
+  // ✅ Map location fix
+  const mapLocation = request?.location?.coordinates
+    ? {
+        lat: request.location.coordinates[1],
+        lng: request.location.coordinates[0],
+      }
+    : null;
 
-    acc[donorId].items.push({
-      name: match.donor_item_id?.item_name,
-      quantity: match.quantity_offered
-    });
-
-    acc[donorId].matches.push(match);
-
-    return acc;
-  }, {})
-);
+  // ✅ Address
+  const { address } = useReverseGeocoding(
+    mapLocation?.lat,
+    mapLocation?.lng
+  );
 
   useEffect(() => {
     dispatch(fetchRequestById(id));
     dispatch(fetchDonationIntentsByRequestId(id));
-  }, [id,dispatch]);
+  }, [id, dispatch]);
 
-  if (!request) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Request not found</h2>
-          <Button onClick={() => navigate("/ngo/requests")}>Back to Requests</Button>
-        </div>
-      </div>
-    );
-  }
+  if (!request) return null;
 
-  const handleAcceptMatch = (matchId) => {
-    toast.success("Match accepted successfully!");
+  // ✅ Split matches
+  const acceptedMatches =
+    relatedMatches?.filter((m) => m.status === "accepted") || [];
+
+  const pendingMatches =
+    relatedMatches?.filter((m) => m.status !== "accepted") || [];
+
+  // ✅ Handlers
+  const handleAccept = (id) => {
+    dispatch(updateDonationIntentStatus({ id, status: "accepted" }));
+    toast.success("Accepted");
   };
 
-  const handleRejectMatch = (matchId) => {
-    toast.info("Match rejected");
-  };
-
-  const handleLockRequest = () => {
-    toast.success("Request locked for resource allocation");
+  const handleReject = (id) => {
+    dispatch(updateDonationIntentStatus({ id, status: "rejected" }));
+    toast.info("Rejected");
   };
 
   return (
@@ -83,7 +83,7 @@ export default function NGORequestDetail() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <Header 
+        <Header
           title={
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => navigate("/ngo/requests")}>
@@ -93,227 +93,130 @@ export default function NGORequestDetail() {
             </div>
           }
           subtitle={`${request.disaster_type} Relief Request`}
-          setSidebarOpen={setSidebarOpen} 
+          setSidebarOpen={setSidebarOpen}
         />
 
-        <div className="p-6">
+        <div className="p-6 space-y-6">
+
+          {/* ================= MAIN GRID ================= */}
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Content */}
+
+            {/* LEFT */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Overview */}
+
+              {/* OVERVIEW */}
               <Card className="p-6">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">Request Overview</h2>
-                    <div className="flex gap-2">
-                      <StatusBadge status={request.status} />
-                      <PriorityBadge priority={request.urgency_level} />
+                <div className="flex justify-between mb-4">
+                  <div className="space-y-4"> 
+                    <h3 className="font-medium text-gray-700 mb-2">Description</h3> 
+                    <p className="text-gray-600">{request.description}</p> 
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600 mb-1">AI Priority Score</div>
-                    <div className="text-4xl font-bold text-blue-600">{request.priority}</div>
-                    <div className="text-xs text-gray-500 mt-1">out of 100</div>
+                  <div className="flex justify-between mb-4">
+                    <StatusBadge status={request.status} />
+                    <PriorityBadge priority={request.urgency_level} />
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-2">Description</h3>
-                    <p className="text-gray-600">{request.description}</p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Location</p>
-                        <p className="font-medium text-gray-900">{request.location.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Created</p>
-                        <p className="font-medium text-gray-900">
-                          {new Date(request.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-gray-400" />
+                  <span>{address || "Fetching address..."}</span>
                 </div>
               </Card>
 
-              {/* Required Items */}
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Required Items</h2>
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left p-3 text-sm font-medium text-gray-700">Item</th>
-                        <th className="text-left p-3 text-sm font-medium text-gray-700">Quantity</th>
-                        <th className="text-left p-3 text-sm font-medium text-gray-700">Category</th>
-                        <th className="text-left p-3 text-sm font-medium text-gray-700">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {request.items.map((item, idx) => (
-                        <tr key={idx} className="border-t">
-                          <td className="p-3 font-medium">{item.item_name}</td>
-                          <td className="p-3">{item.quantity}</td>
-                          <td className="p-3">
-                            <span className="px-2 py-1 bg-gray-100 rounded text-sm">{item.category}</span>
-                          </td>
-                          <td className="p-3">
-                            {item.critical ? (
-                              <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-sm font-medium">
-                                Critical
-                              </span>
-                            ) : (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
-                                Standard
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+              {/* ================= ACCEPTED DRAWER ================= */}
+          <Card className="p-4 bg-green-50 border-green-200">
+            <h2 className="font-bold text-green-800 mb-3">
+              Accepted Matches ({acceptedMatches.length})
+            </h2>
 
-              {/* Matches */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Matched Donors & Volunteers ({relatedMatches?.length || 0})
-              </h2>
-
-              {matchesLoading ? (
-                <div className="text-center py-6">Loading matches...</div>
-              ) : !relatedMatches || relatedMatches.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No matches found yet.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                {groupedMatches.map((group) => (
-                  <div key={group.donor_id} className="border rounded-lg p-4">
-
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">
-                            {group.donor_id}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Donor • {group.items.length} items offered
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-sm text-gray-600">Match Confidence</div>
-                        <div className="text-lg font-bold text-green-600">
-                          97%
-                        </div>
-                      </div>
+            {acceptedMatches.length === 0 ? (
+              <p className="text-sm text-gray-500">No accepted matches yet</p>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {acceptedMatches.map((match) => (
+                  <div key={match._id} className="p-3 bg-white rounded shadow-sm">
+                    <div className="font-medium">{match.donor_item_id?.item_name}</div>
+                    <div className="text-sm text-gray-500">
+                      Qty: {match.quantity_offered}
                     </div>
-
-                    {/* ✅ GROUPED ITEMS */}
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600 mb-1">Offering:</p>
-                      {group.items.map((item, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm mr-2"
-                        >
-                          {item.name} ({item.quantity})
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-2 mt-4 pt-4 border-t">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Accept
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-red-300 text-red-700 hover:bg-red-50"
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Reject
-                      </Button>
+                    <div className="text-xs text-green-600 mt-1">
+                      ✔ Accepted
                     </div>
                   </div>
                 ))}
               </div>
-              )}
-            </Card>
+            )}
+          </Card>
+
+              {/* MATCHES */}
+              <Card className="p-6">
+                <h2 className="text-xl font-bold mb-4">
+                  Pending Matches ({pendingMatches.length})
+                </h2>
+
+                {loading ? (
+                  <p>Loading...</p>
+                ) : pendingMatches.length === 0 ? (
+                  <p className="text-gray-500">No pending matches</p>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingMatches.map((match) => (
+                      <Card key={match._id} className="p-5 hover:shadow-md">
+
+                        <div className="flex justify-between">
+                          <div className="flex gap-3">
+                            <User className="w-5 h-5 text-gray-500" />
+
+                            <div>
+                              <p className="font-medium">
+                                {match.donor_item_id?.item_name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Donor: {match.donor_id}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="font-bold">
+                            {match.quantity_offered}
+                          </div>
+                        </div>
+
+                        {/* ACTIONS */}
+                        <div className="flex justify-end gap-3 mt-4">
+                          <CheckCircle
+                            className="w-6 h-6 text-green-600 cursor-pointer hover:scale-110"
+                            onClick={() => handleAccept(match._id)}
+                          />
+                          <X
+                            className="w-6 h-6 text-red-600 cursor-pointer hover:scale-110"
+                            onClick={() => handleReject(match._id)}
+                          />
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </Card>
             </div>
 
-            {/* Sidebar */}
+            {/* RIGHT */}
             <div className="space-y-6">
-              {/* Map */}
-              <Card className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Location</h3>
-                <MapPlaceholder location={request.location} className="h-48" />
+              <Card className="p-4">
+                <MapPlaceholder location={mapLocation} />
               </Card>
 
-              {/* Actions */}
-              <Card className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Actions</h3>
-                <div className="space-y-2">
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700" onClick={handleLockRequest}>
-                    <Lock className="w-4 h-4 mr-2" />
-                    Lock for Allocation
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Edit Request
-                  </Button>
-                  <Button variant="outline" className="w-full border-red-300 text-red-700 hover:bg-red-50">
-                    Close Request
-                  </Button>
-                </div>
-              </Card>
-
-              {/* Statistics */}
-              <Card className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Statistics</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total Items</span>
-                    <span className="font-bold text-gray-900">{request.items.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Critical Items</span>
-                    <span className="font-bold text-red-600">
-                      {request.items.filter(i => i.critical).length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Donor Matches</span>
-                    {/* <span className="font-bold text-blue-600">{request.matches.donors}</span> */}
-                    <span className="font-bold text-blue-600">10</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Volunteer Matches</span>
-                    {/* <span className="font-bold text-green-600">{request.matches.volunteers}</span> */}
-                    <span className="font-bold text-green-600">10</span>
-                  </div>
-                </div>
+              <Card className="p-4">
+                <Button
+                  className="w-full bg-orange-600"
+                  onClick={() => toast.success("Locked")}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Lock Request
+                </Button>
               </Card>
             </div>
+
           </div>
         </div>
       </div>

@@ -257,14 +257,14 @@ const donorSlice = createSlice({
       =========================== */
 
       .addCase(updateDonationIntentStatus.fulfilled, (state, action) => {
-        const index = state.donationIntents.findIndex(
-          (intent) => intent._id === action.payload._id
-        );
+      const index = state.relatedMatches.findIndex(
+        (intent) => intent._id === action.payload._id
+      );
 
-        if (index !== -1) {
-          state.donationIntents[index] = action.payload;
-        }
-      });
+      if (index !== -1) {
+        state.relatedMatches[index] = action.payload;
+      }
+    });
   }
 });
 

@@ -16,6 +16,7 @@ import Header from "../../components/shared/Header";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import PageLoader from "../Loading";
+import useReverseGeocoding from "../../components/shared/ReverseGeocoding";
 
 import { ArrowLeft, MapPin, Building2, Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +33,18 @@ export default function DonorRequestDetail() {
 
   const { selectedRequest: request, loading } = useSelector((state) => state.requests);
   const [initialLoad, setInitialLoad] = useState(true);
+
+  const mapLocation = request?.location?.coordinates
+    ? {
+        lat: request.location.coordinates[1], // ✅ lat = index 1
+        lng: request.location.coordinates[0], // ✅ lng = index 0
+      }
+    : null;
+  
+    const { address, loading: addressLoading } = useReverseGeocoding(
+    mapLocation?.lat,
+    mapLocation?.lng
+  );
 
   useEffect(() => {
     dispatch(fetchRequestById(id)).then(() => setInitialLoad(false));
@@ -141,7 +154,7 @@ export default function DonorRequestDetail() {
                     <MapPin className="w-5 h-5 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-medium text-gray-900">{request.location?.name}</p>
+                      <p className="font-medium text-gray-900">{address}</p>
                     </div>
                   </div>
                 </div>
@@ -173,7 +186,7 @@ export default function DonorRequestDetail() {
               {/* Map */}
               <Card className="p-6">
                 <h3 className="font-bold text-gray-900 mb-4">Location</h3>
-                <MapPlaceholder location={request.location} className="h-48" />
+                <MapPlaceholder location={mapLocation} className="h-48" />
               </Card>
 
               {/* Donation */}

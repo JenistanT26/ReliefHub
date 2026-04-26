@@ -77,40 +77,52 @@ const requestSlice = createSlice({
       /* Fetch Requests */
       .addCase(fetchRequests.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchRequests.fulfilled, (state, action) => {
         state.loading = false;
-        state.requests = action.payload;
+        state.requests = Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
       .addCase(fetchRequests.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "Failed to fetch";
+        state.requests = [];
       })
 
       /* Fetch Request By ID */
       .addCase(fetchRequestById.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchRequestById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedRequest = action.payload;
+        state.selectedRequest = action.payload || null;
       })
       .addCase(fetchRequestById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "Failed to fetch request";
       })
 
       /* Create Request */
       .addCase(createRequest.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createRequest.fulfilled, (state, action) => {
         state.loading = false;
-        state.requests.push(action.payload);
+
+        // 🔥 Ensure array safety
+        if (!Array.isArray(state.requests)) {
+          state.requests = [];
+        }
+
+        state.requests.unshift(action.payload); // better UX (new on top)
       })
       .addCase(createRequest.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "Create failed";
       });
   },
 });

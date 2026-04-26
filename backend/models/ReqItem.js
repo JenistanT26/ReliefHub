@@ -5,22 +5,22 @@ const requestItemSchema = new mongoose.Schema({
   request_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Request",
-    required: true,
+    //required: true,
   },
 
   item_name: {
     type: String,
-    required: true,
+    //required: true,
   },
 
   quantity: {
     type: Number,
-    required: true,
+    //required: true,
   },
   
   quantity_fullfilled: {
     type: Number,
-    required: true,
+    // required: true,
   },
 
   status:{

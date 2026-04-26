@@ -110,7 +110,7 @@ export default function NGOCreateRequest() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select urgency" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[9999]">
                       <SelectItem value="high">🔴 High - Critical</SelectItem>
                       <SelectItem value="medium">🟠 Medium - Moderate</SelectItem>
                       <SelectItem value="low">🟢 Low - Routine</SelectItem>
@@ -121,8 +121,20 @@ export default function NGOCreateRequest() {
 
               <div>
                 <Label>Location *</Label>
-                <MapPlaceholder location={formData.location} className="h-64 mt-2" />
-                <p className="text-sm text-gray-500 mt-2">Click on map to set disaster location</p>
+                <MapPlaceholder
+                  location={{
+                    lat: formData.latitude,
+                    lng: formData.longitude,
+                  }}
+                  onLocationChange={({ lat, lng }) =>
+                    setFormData({
+                      ...formData,
+                      latitude: lat,
+                      longitude: lng,
+                    })
+                  }
+                />                
+              <p className="text-sm text-gray-500 mt-2">Click on map to set disaster location</p>
               </div>
 
               <div>
