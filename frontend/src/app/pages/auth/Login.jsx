@@ -10,28 +10,43 @@ import { Building2, Heart, Users } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [showAlert, setShowAlert] = useState(false);
   const [activeTab, setActiveTab] = useState("ngo");
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Mock login - redirect to respective dashboard
-    const dashboardRoutes = {
-      ngo: "/ngo/dashboard",
-      donor: "/donor/dashboard",
-      volunteer: "/volunteer/dashboard"
-    };
-    navigate(dashboardRoutes[activeTab]);
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  setShowAlert(true);
+
+  const dashboardRoutes = {
+    ngo: "/ngo/dashboard",
+    donor: "/donor/dashboard",
+    volunteer: "/volunteer/dashboard"
   };
+
+  setTimeout(() => {
+    setShowAlert(false);
+    navigate(dashboardRoutes[activeTab]);
+  }, 1500);
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       <Navbar />
 
       <div className="max-w-md mx-auto px-4 py-12">
+      {showAlert && (
+      <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-white border border-green-200 shadow-lg rounded-lg px-6 py-3 flex items-center gap-3 z-50">
+        <span className="text-green-600 text-xl">✅</span>
+        <p className="text-green-700 font-medium">
+          Login Successful!
+        </p>
+      </div>
+    )}
         <Card className="p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>

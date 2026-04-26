@@ -1,71 +1,127 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRequestById } from "../../store/slices/requestSlice";
+import { submitDonationIntent, fetchDonationIntentsByRequestId } from "../../store/slices/donoritemSlice";
+
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+
 import Sidebar from "../../components/shared/Sidebar";
+import Header from "../../components/shared/Header";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
-import { ArrowLeft, MapPin, Building2, Heart } from "lucide-react";
-import { mockRequests } from "../../data/mockData";
+import PageLoader from "../Loading";
+
+import { ArrowLeft, MapPin, Building2, Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DonorRequestDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [donation, setDonation] = useState({
-    item: "",
-    quantity: "",
-    deliveryTime: ""
-  });
+  const [currentItem, setCurrentItem] = useState({ item: "", quantity: ""});
+  const [donationItems, setDonationItems] = useState([]);
 
-  const request = mockRequests.find(r => r.id === id);
+  const { selectedRequest: request, loading } = useSelector((state) => state.requests);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  if (!request) {
-    return null;
+  useEffect(() => {
+    dispatch(fetchRequestById(id)).then(() => setInitialLoad(false));
+
+    const interval = setInterval(() => {
+      dispatch(fetchRequestById(id));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [dispatch, id]);
+
+  if (initialLoad) {
+    return <PageLoader title="Loading Request Details" subtitle="Fetching details..." />;
   }
 
-  const handleDonate = () => {
-    if (donation.item && donation.quantity) {
-      toast.success("Donation intent submitted successfully!");
-      setDialogOpen(false);
-      navigate("/donor/my-donations");
+  const handleAddItem = () => {
+    if (!currentItem.item || !currentItem.quantity) {
+      toast.error("Please select item and quantity");
+      return;
     }
+
+    setDonationItems((prev) => [...prev, { ...currentItem }]);
+    setCurrentItem({ item: "", quantity: ""});
   };
+
+  const handleRemoveItem = (index) => {
+    setDonationItems((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleDonate = async () => {
+  if (donationItems.length === 0) {
+    toast.error("Please add at least one item to donate");
+    return;
+  }
+
+  // Build the donationItems array for backend
+  const payload = donationItems.map((donItem) => ({
+    item_name: donItem.item,
+    quantity_submitted: Number(donItem.quantity),
+    category: request.items.find((i) => i.item_name === donItem.item)?.category || "general",
+    request_item_id: request.items.find((i) => i.item_name === donItem.item)?._id,
+  }));
+
+  try {
+    // Send single POST to backend
+    await dispatch(submitDonationIntent({ 
+      donor_id: "507f191e810c19729de860ea", // Replace with authenticated user id
+      relief_request_id: request._id,
+      donationItems: payload 
+    })).unwrap();
+
+    toast.success("Donation intent submitted successfully!");
+    setDialogOpen(false);
+    setDonationItems([]);
+    dispatch(fetchDonationIntentsByRequestId(request._id));
+    navigate("/donor/my-donations");
+  } catch (err) {
+    console.log(err.message );
+    toast.error("Failed to submit donation intent: " + (err.message || err.error || "error"));
+  }
+};
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="donor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
+        <Header 
+          title={
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => navigate("/donor/requests")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{request.id}</h1>
-                <p className="text-gray-600">{request.disasterType} Relief</p>
-              </div>
+              {request.description}
             </div>
-          </div>
-        </div>
+          }
+          subtitle={`${request.disaster_type} Relief`}
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              {/* Request Overview */}
               <Card className="p-6">
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Building2 className="w-5 h-5 text-gray-400" />
-                      <h2 className="text-xl font-bold text-gray-900">{request.ngoName}</h2>
+                      <h2 className="text-xl font-bold text-gray-900">{request.ngo_id}</h2>
                     </div>
                     <PriorityBadge priority={request.urgency} />
                   </div>
@@ -85,19 +141,20 @@ export default function DonorRequestDetail() {
                     <MapPin className="w-5 h-5 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-medium text-gray-900">{request.location.name}</p>
+                      <p className="font-medium text-gray-900">{request.location?.name}</p>
                     </div>
                   </div>
                 </div>
               </Card>
 
+              {/* Required Items */}
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Required Items</h2>
                 <div className="space-y-3">
-                  {request.items.map((item, idx) => (
+                  {request.items?.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                       <div>
-                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="font-medium text-gray-900">{item.item_name}</p>
                         <p className="text-sm text-gray-600">{item.category}</p>
                       </div>
                       <div className="text-right">
@@ -113,16 +170,19 @@ export default function DonorRequestDetail() {
             </div>
 
             <div className="space-y-6">
+              {/* Map */}
               <Card className="p-6">
                 <h3 className="font-bold text-gray-900 mb-4">Location</h3>
                 <MapPlaceholder location={request.location} className="h-48" />
               </Card>
 
+              {/* Donation */}
               <Card className="p-6 bg-gradient-to-br from-green-50 to-blue-50">
                 <h3 className="font-bold text-gray-900 mb-4">Make an Impact</h3>
                 <p className="text-sm text-gray-600 mb-6">
-                  Your donation will directly help people affected by {request.disasterType.toLowerCase()} in {request.location.name}.
+                  Your donation will directly help people affected by {request.disaster_type?.toLowerCase()} in {request.location?.name}.
                 </p>
+
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full bg-green-600 hover:bg-green-700" size="lg">
@@ -130,36 +190,37 @@ export default function DonorRequestDetail() {
                       Express Donation Intent
                     </Button>
                   </DialogTrigger>
+
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Express Donation Intent</DialogTitle>
                     </DialogHeader>
+
                     <div className="space-y-4 mt-4">
-                      <div>
+                      {/* Current Item Form */}
+                      <div className="space-y-2">
                         <Label>Select Item</Label>
-                        <Select value={donation.item} onValueChange={(value) => setDonation({ ...donation, item: value })}>
+                        <Select value={currentItem.item} onValueChange={(value) => setCurrentItem({ ...currentItem, item: value })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose an item" />
                           </SelectTrigger>
                           <SelectContent>
-                            {request.items.map((item, idx) => (
-                              <SelectItem key={idx} value={item.name}>{item.name}</SelectItem>
+                            {request.items?.map((item, idx) => (
+                              <SelectItem key={idx} value={item.item_name}>{item.item_name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      <div>
+
                         <Label>Quantity</Label>
                         <Input
                           type="number"
                           placeholder="Enter quantity"
-                          value={donation.quantity}
-                          onChange={(e) => setDonation({ ...donation, quantity: e.target.value })}
+                          value={currentItem.quantity}
+                          onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
                         />
-                      </div>
-                      <div>
+
                         <Label>Estimated Delivery Time</Label>
-                        <Select value={donation.deliveryTime} onValueChange={(value) => setDonation({ ...donation, deliveryTime: value })}>
+                        <Select value={currentItem.deliveryTime}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timeline" />
                           </SelectTrigger>
@@ -169,8 +230,30 @@ export default function DonorRequestDetail() {
                             <SelectItem value="week">Within a week</SelectItem>
                           </SelectContent>
                         </Select>
+
+                        <Button className="mt-2 w-full bg-blue-600 hover:bg-blue-700" onClick={handleAddItem}>
+                          Add Item
+                        </Button>
                       </div>
-                      <Button onClick={handleDonate} className="w-full bg-green-600 hover:bg-green-700">
+
+                      {/* List of Added Items */}
+                      {donationItems.length > 0 && (
+                        <div className="border rounded-lg p-4 space-y-2 bg-gray-50">
+                          <h4 className="font-medium text-gray-700">Items to Donate</h4>
+                          {donationItems.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center bg-white p-2 rounded shadow-sm">
+                              <div>
+                                {item.item} - {item.quantity} pcs 
+                              </div>
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(idx)}>
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleDonate}>
                         Confirm Donation
                       </Button>
                     </div>
@@ -178,6 +261,7 @@ export default function DonorRequestDetail() {
                 </Dialog>
               </Card>
 
+              {/* AI Match Score */}
               <Card className="p-6">
                 <h3 className="font-bold text-gray-900 mb-4">AI Match Score</h3>
                 <div className="text-center">

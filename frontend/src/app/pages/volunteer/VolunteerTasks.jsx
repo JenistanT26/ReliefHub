@@ -6,6 +6,7 @@ import PriorityBadge from "../../components/shared/PriorityBadge";
 import { MapPin, Calendar, CheckCircle } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
 import { toast } from "sonner";
+import Header from "../../components/shared/Header";
 
 export default function VolunteerTasks() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,12 +26,11 @@ export default function VolunteerTasks() {
       <Sidebar role="volunteer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Nearby Requests</h1>
-            <p className="text-gray-600">Volunteer opportunities matching your skills</p>
-          </div>
-        </div>
+        <Header 
+          title="Nearby Requests" 
+          subtitle="Volunteer opportunities matching your skills" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <div className="grid gap-6">

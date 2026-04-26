@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { 
   LayoutDashboard, 
@@ -12,14 +13,20 @@ import {
   History,
   Building2,
   BarChart3,
-  Shield
+  Shield,
+  Menu,
+  Handshake,
+  CheckSquare2,
+  Highlighter,
+  PenIcon
 } from "lucide-react";
 import { cn } from "../ui/utils";
 
 const roleMenus = {
   ngo: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/ngo/dashboard" },
-    { icon: FileText, label: "Create Request", path: "/ngo/create-request" },
+    { icon: FileText, label: "Relief Request", path: "/ngo/create-request" },
+    { icon: Handshake, label: "Volunteer Request", path: "/ngo/create-volunteer-request" },
     { icon: List, label: "My Requests", path: "/ngo/requests" },
     { icon: Users, label: "Matches", path: "/ngo/matches" },
     { icon: AlertTriangle, label: "Priority Alerts", path: "/ngo/priority-alerts" },
@@ -29,8 +36,8 @@ const roleMenus = {
   donor: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/donor/dashboard" },
     { icon: List, label: "Available Requests", path: "/donor/requests" },
+    { icon: PenIcon, label: "Create Donation Items", path: "/donor/create-request" },
     { icon: Heart, label: "My Donations", path: "/donor/my-donations" },
-    { icon: History, label: "History", path: "/donor/my-donations" },
     { icon: User, label: "Profile", path: "/profile" }
   ],
   volunteer: [
@@ -49,17 +56,29 @@ const roleMenus = {
   ]
 };
 
-export default function Sidebar({ role = "ngo", isOpen = true, onClose = () => {} }) {
+export default function Sidebar({ role = "ngo", isOpen = false, onClose = () => {} }) {
   const location = useLocation();
+  const [internalOpen, setInternalOpen] = useState(false);
   const menuItems = roleMenus[role] || roleMenus.ngo;
+
+  const isSidebarOpen = isOpen || internalOpen;
+
+  const handleClose = () => {
+    setInternalOpen(false);
+    if (onClose) onClose();
+  };
+
+  const handleOpen = () => {
+    setInternalOpen(true);
+  };
 
   return (
     <>
       {/* Mobile overlay */}
-      {isOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onClose}
+          onClick={handleClose}
         />
       )}
 
@@ -67,7 +86,7 @@ export default function Sidebar({ role = "ngo", isOpen = true, onClose = () => {
       <aside
         className={cn(
           "fixed lg:sticky top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 z-50 transition-transform duration-300",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
@@ -93,7 +112,7 @@ export default function Sidebar({ role = "ngo", isOpen = true, onClose = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    onClick={onClose}
+                    onClick={handleClose}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                       isActive
@@ -113,6 +132,7 @@ export default function Sidebar({ role = "ngo", isOpen = true, onClose = () => {
           <div className="p-3 border-t border-gray-200">
             <Link
               to="/"
+              onClick={handleClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <LogOut className="w-5 h-5" />

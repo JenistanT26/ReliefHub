@@ -7,6 +7,7 @@ import DonorRegister from "./pages/auth/DonorRegister";
 import VolunteerRegister from "./pages/auth/VolunteerRegister";
 import NGODashboard from "./pages/ngo/NGODashboard";
 import NGOCreateRequest from "./pages/ngo/NGOCreateRequest";
+import NGOCreateVolunteerRequest from "./pages/ngo/NGOCreateVolunteerRequest";
 import NGOMyRequests from "./pages/ngo/NGOMyRequests";
 import NGORequestDetail from "./pages/ngo/NGORequestDetail";
 import NGOMatches from "./pages/ngo/NGOMatches";
@@ -14,6 +15,7 @@ import NGOPriorityAlerts from "./pages/ngo/NGOPriorityAlerts";
 import NGODonations from "./pages/ngo/NGODonations";
 import DonorDashboard from "./pages/donor/DonorDashboard";
 import DonorRequests from "./pages/donor/DonorRequests";
+import DonorCreateRequest from "./pages/donor/DonorCreateRequest";
 import DonorRequestDetail from "./pages/donor/DonorRequestDetail";
 import DonorMyDonations from "./pages/donor/DonorMyDonations";
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
@@ -59,6 +61,10 @@ export const router = createBrowserRouter([
     Component: NGOCreateRequest,
   },
   {
+    path: "/ngo/create-volunteer-request",
+    Component: NGOCreateVolunteerRequest,
+  },
+  {
     path: "/ngo/requests",
     Component: NGOMyRequests,
   },
@@ -85,6 +91,10 @@ export const router = createBrowserRouter([
   {
     path: "/donor/requests",
     Component: DonorRequests,
+  },
+  {
+    path: "/donor/create-request",
+    Component: DonorCreateRequest,
   },
   {
     path: "/donor/requests/:id",

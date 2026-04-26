@@ -7,6 +7,7 @@ import { Bell, FileText, Users, CheckCircle, AlertTriangle, TrendingUp, MapPin }
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { mockRequests } from "../../data/mockData";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
+import Header from "../../components/shared/Header";
 
 export default function NGODashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,31 +40,27 @@ export default function NGODashboard() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">NGO Dashboard</h1>
-                <p className="text-gray-600">Welcome back, Red Cross India</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Link to="/notifications">
-                  <Button variant="outline" size="icon" className="relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </Button>
-                </Link>
-                <Link to="/ngo/create-request">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Create Request
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Header 
+          title="NGO Dashboard" 
+          subtitle="Welcome back, Red Cross India" 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <>
+              <Link to="/notifications">
+                <Button variant="outline" size="icon" className="relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </Button>
+              </Link>
+              <Link to="/ngo/create-request">
+                <Button className="hidden sm:flex bg-blue-600 hover:bg-blue-700">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Create Request
+                </Button>
+              </Link>
+            </>
+          }
+        />
 
         <div className="p-6">
           {/* Stats Cards */}
