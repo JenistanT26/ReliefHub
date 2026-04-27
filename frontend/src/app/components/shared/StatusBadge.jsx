@@ -14,8 +14,8 @@ const statusConfig = {
     label: "Locked",
     className: "bg-orange-100 text-orange-700 border-orange-300"
   },
-  fulfilled: {
-    label: "Fulfilled",
+  approved: {
+    label: "Approved",
     className: "bg-green-100 text-green-700 border-green-300"
   },
   pending: {

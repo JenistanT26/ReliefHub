@@ -22,7 +22,7 @@ const donorItemSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["available","reserved","donated"],
+    enum: ["available","reserved","donated","allocated"],
     default: "available"
   }
 

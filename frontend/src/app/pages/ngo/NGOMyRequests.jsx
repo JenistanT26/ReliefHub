@@ -160,7 +160,7 @@ export default function NGOMyRequests() {
                           <div className="text-right">
                             <div className="text-sm text-gray-600 mb-1">AI Priority Score</div>
                             <div className="text-3xl font-bold text-blue-600">
-                              {request.ai_priority_score || 0}
+                              {Math.round(request.ai_priority_score * 100) / 100 || 0}
                             </div>
                           </div>
                         </div>

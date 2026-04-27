@@ -33,7 +33,7 @@ const donationIntentSchema = new mongoose.Schema({
       "approved",
       "rejected",
       "cancelled",
-      "completed"
+      "completed",
     ],
     default: "pending"
   },

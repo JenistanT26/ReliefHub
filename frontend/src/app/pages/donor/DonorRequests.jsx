@@ -18,10 +18,11 @@ import Sidebar from "../../components/shared/Sidebar";
 import Header from "../../components/shared/Header";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import PageLoader from "../Loading"
-
+import useReverseGeocoding from "../../components/shared/ReverseGeocoding";
 import { Search, MapPin, Package } from "lucide-react";
 
 import { fetchRequests } from "../../store/slices/requestSlice";
+
 
 export default function DonorRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,22 +74,34 @@ export default function DonorRequests() {
      Filtering
   ============================== */
 
-  const filteredRequests = openRequests.filter((request) => {
+  // const filteredRequests = openRequests.filter((request) => {
 
-    const matchesSearch =
-      request._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.ngoName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.location?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+  //   const matchesSearch =
+  //     request._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     request.ngoName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     request.location?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory =
-      categoryFilter === "all" ||
-      request.items?.some((item) => item.category === categoryFilter);
+  //   const matchesCategory =
+  //     categoryFilter === "all" ||
+  //     request.items?.some((item) => item.category === categoryFilter);
 
-    const matchesUrgency =
-      urgencyFilter === "all" || request.urgency === urgencyFilter;
+  //   const matchesUrgency =
+  //     urgencyFilter === "all" || request.urgency === urgencyFilter;
 
-    return matchesSearch && matchesCategory && matchesUrgency;
-  });
+  //   const sortedRequests = [...filteredRequests].sort(
+  //     (a, b) => b.ai_priority_score - a.ai_priority_score);
+
+  //   return matchesSearch && matchesCategory && matchesUrgency;
+  // });
+
+  function Address({ lat,lng }) {
+      const { address, loading } = useReverseGeocoding(lat, lng);
+      console.log("HOOK RUNNING:", lat, lng);
+    
+      return <span>{loading ? "..." : address}</span>;
+    }
+
+
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -180,7 +193,7 @@ export default function DonorRequests() {
 
           {/* Requests Grid */}
           <div className="grid md:grid-cols-2 gap-6">
-            {filteredRequests.map((request) => (
+            {openRequests.map((request) => (
 
               <Card
                 key={request._id}
@@ -210,7 +223,10 @@ export default function DonorRequests() {
 
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <MapPin className="w-4 h-4" />
-                    {request.location?.name || "Unknown location"}
+                    <Address
+                                  lat={request.location.coordinates[1]}
+                                  lng={request.location.coordinates[0]}
+                                />
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -262,7 +278,7 @@ export default function DonorRequests() {
 
           {/* Empty State */}
 
-          {filteredRequests.length === 0 && (
+          {openRequests.length === 0 && (
 
             <Card className="p-12 text-center">
 

@@ -66,7 +66,7 @@ export default function DonorMyDonations() {
   /* Status Tabs */
 
   const pending = filteredDonations.filter((d) => d.status === "pending");
-  const accepted = filteredDonations.filter((d) => d.status === "approved");
+  const approved = filteredDonations.filter((d) => d.status === "approved");
   const rejected = filteredDonations.filter((d) => d.status === "rejected");
   const completed = filteredDonations.filter((d) => d.status === "completed");
 
@@ -257,8 +257,8 @@ export default function DonorMyDonations() {
                 Pending ({pending.length})
               </TabsTrigger>
 
-              <TabsTrigger value="accepted">
-                Accepted ({accepted.length})
+              <TabsTrigger value="approved">
+                Approved ({approved.length})
               </TabsTrigger>
 
               <TabsTrigger value="rejected">
@@ -295,12 +295,12 @@ export default function DonorMyDonations() {
               </div>
             </TabsContent>
 
-            {/* ACCEPTED */}
+            {/* approved */}
 
-            <TabsContent value="accepted" className="mt-6">
+            <TabsContent value="approved" className="mt-6">
               <div className="grid md:grid-cols-2 gap-6">
 
-                {accepted.map((donation) => (
+                {approved.map((donation) => (
                   <DonationCard key={donation._id} donation={donation} />
                 ))}
 

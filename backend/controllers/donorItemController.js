@@ -168,21 +168,17 @@ export const getAllDonationIntents = async (req, res) => {
 
 /* 7️⃣ Approve / Reject Donation Intent */
 export const updateDonationIntentStatus = async (req, res) => {
-
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-
     const { status } = req.body;
 
     const intent = await DonationIntent
       .findById(req.params.id)
       .session(session);
 
-    if (!intent) {
-      throw new Error("Intent not found");
-    }
+    if (!intent) throw new Error("Intent not found");
 
     if (intent.status !== "pending") {
       throw new Error("Intent already processed");
@@ -196,36 +192,35 @@ export const updateDonationIntentStatus = async (req, res) => {
       .findById(intent.request_item_id)
       .session(session);
 
+    if (!donorItem || !requestItem) {
+      throw new Error("Related items not found");
+    }
 
     if (status === "approved") {
+      const donationQty = intent.quantity_offered; // assuming intent has quantity
 
-      if (donorItem.quantity < intent.quantity_offered) {
-        throw new Error("Donor item quantity insufficient");
+      if (requestItem.quantity < donationQty) {
+        throw new Error("Request already fulfilled or insufficient requirement");
       }
 
-      if (requestItem.quantity < intent.quantity_offered) {
-        throw new Error("Request already fulfilled");
+      if (donorItem.quantity < donationQty) {
+        throw new Error("Donor does not have enough quantity");
       }
 
-      donorItem.quantity -= intent.quantity_offered;
-      requestItem.quantity -= intent.quantity_offered;
+      // 🔹 Reduce quantities
+      requestItem.quantity -= donationQty;
 
-      /* Update donor item status */
-      if (donorItem.quantity === 0) {
-        donorItem.status = "donated";
-      }
+      // 🔹 Update donor status
+      donorItem.status = "allocated"; // partially used
+      intent.status = "approved";
 
       await donorItem.save({ session });
       await requestItem.save({ session });
-
-      intent.status = "approved";
     }
-
 
     if (status === "rejected") {
       intent.status = "rejected";
     }
-
 
     await intent.save({ session });
 
@@ -238,12 +233,11 @@ export const updateDonationIntentStatus = async (req, res) => {
     });
 
   } catch (error) {
-
     await session.abortTransaction();
     session.endSession();
 
     res.status(500).json({
-      success:false,
+      success: false,
       error: error.message
     });
   }

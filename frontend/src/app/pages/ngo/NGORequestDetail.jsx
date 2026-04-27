@@ -62,14 +62,14 @@ export default function NGORequestDetail() {
 
   // ✅ Split matches
   const acceptedMatches =
-    relatedMatches?.filter((m) => m.status === "accepted") || [];
+    relatedMatches?.filter((m) => m.status === "approved") || [];
 
   const pendingMatches =
-    relatedMatches?.filter((m) => m.status !== "accepted") || [];
+    relatedMatches?.filter((m) => m.status == "pending") || [];
 
   // ✅ Handlers
   const handleAccept = (id) => {
-    dispatch(updateDonationIntentStatus({ id, status: "accepted" }));
+    dispatch(updateDonationIntentStatus({ id, status: "approved" }));
     toast.success("Accepted");
   };
 

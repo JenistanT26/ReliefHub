@@ -29,6 +29,7 @@ def predict():
     ]]
 
     prediction = model.predict(df)
+    print(prediction)
 
     return jsonify({
         "priority_score": float(prediction[0])

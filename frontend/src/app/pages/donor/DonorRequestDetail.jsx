@@ -276,9 +276,9 @@ export default function DonorRequestDetail() {
 
               {/* AI Match Score */}
               <Card className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">AI Match Score</h3>
+                <h3 className="font-bold text-gray-900 mb-4">AI Priority Score</h3>
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-blue-600 mb-2">87%</div>
+                  <div className="text-5xl font-bold text-blue-600 mb-2">{request.ai_priority_score}</div>
                   <p className="text-sm text-gray-600">
                     Based on your location, past donations, and resource availability
                   </p>
