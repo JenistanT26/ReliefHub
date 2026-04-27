@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchRequests } from "../../store/slices/requestSlice";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import Sidebar from "../../components/shared/Sidebar";
@@ -12,17 +14,24 @@ import Header from "../../components/shared/Header";
 export default function NGODashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const dispatch = useDispatch();
+  const { requests, loading } = useSelector((state) => state.requests);
+
+  useEffect(() => {
+    dispatch(fetchRequests());
+  }, [dispatch]);
+
   const stats = {
-    totalRequests: 45,
-    activeRequests: 12,
-    fulfilledRequests: 28,
-    pendingMatches: 18
+    totalRequests: requests.length,
+    activeRequests: requests.filter(r => r.status === "open").length,
+    fulfilledRequests: requests.filter(r => r.status === "fulfilled").length,
+    pendingMatches: 18 // To be implemented with dynamic matches
   };
 
   const priorityData = [
-    { name: "High", value: 8, color: "#ef4444" },
-    { name: "Medium", value: 15, color: "#f97316" },
-    { name: "Low", value: 22, color: "#22c55e" }
+    { name: "High", value: requests.filter(r => (r.urgency_level || r.urgency) === "high").length, color: "#ef4444" },
+    { name: "Medium", value: requests.filter(r => (r.urgency_level || r.urgency) === "medium").length, color: "#f97316" },
+    { name: "Low", value: requests.filter(r => (r.urgency_level || r.urgency) === "low").length, color: "#22c55e" }
   ];
 
   const monthlyData = [
@@ -32,8 +41,9 @@ export default function NGODashboard() {
     { month: "Apr", requests: 15 }
   ];
 
-  const myRequests = mockRequests.filter(r => r.ngoId === "NGO-001");
-  const recentRequests = myRequests.slice(0, 3);
+  const recentRequests = [...requests]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -190,26 +200,26 @@ export default function NGODashboard() {
               </div>
               <div className="space-y-3">
                 {recentRequests.map((request) => (
-                  <div key={request.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div key={request._id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-gray-900">{request.id}</p>
-                        <p className="text-sm text-gray-600">{request.disasterType} Relief</p>
+                        <p className="font-medium text-gray-900">{request.request_code || request._id}</p>
+                        <p className="text-sm text-gray-600">{request.disaster_type || request.disasterType} Relief</p>
                       </div>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        request.urgency === 'high' ? 'bg-red-100 text-red-700' :
-                        request.urgency === 'medium' ? 'bg-orange-100 text-orange-700' :
+                        (request.urgency_level || request.urgency) === 'high' ? 'bg-red-100 text-red-700' :
+                        (request.urgency_level || request.urgency) === 'medium' ? 'bg-orange-100 text-orange-700' :
                         'bg-green-100 text-green-700'
                       }`}>
-                        {request.urgency.toUpperCase()}
+                        {String(request.urgency_level || request.urgency).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
-                      {request.location.name}
+                      {request.location?.name || "Unknown Location"}
                     </div>
                     <div className="mt-2 text-sm text-gray-600">
-                      AI Score: <span className="font-medium text-blue-600">{request.priority}</span>
+                      AI Score: <span className="font-medium text-blue-600">{request.priority || "N/A"}</span>
                     </div>
                   </div>
                 ))}

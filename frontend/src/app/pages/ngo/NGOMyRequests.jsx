@@ -22,7 +22,7 @@ export default function NGOMyRequests() {
   const {requests,loading,error} = useSelector((state) => state.requests)
   
 
-  const myRequests = mockRequests.filter(r => r.ngoId === "NGO-001");
+  const myRequests = requests
 
   const filteredRequests = myRequests.filter(request => {
     const matchesSearch = request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,13 +108,20 @@ export default function NGOMyRequests() {
                 >
                   Fulfilled
                 </Button>
+                <Button
+                  variant={filterStatus === "closed" ? "default" : "outline"}
+                  onClick={() => setFilterStatus("closed")}
+                  size="sm"
+                >
+                  Closed
+                </Button>
               </div>
             </div>
           </Card>
 
           {/* Requests Grid */}
           <div className="grid gap-6">
-            {requests.map((request) => (
+            {filteredRequests.map((request) => (
               <Card key={request._id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                   <div className="flex-1">
@@ -177,7 +184,7 @@ export default function NGOMyRequests() {
                   </Link> */}
                     <Button variant="outline" className="w-full flex-1" onClick={()=>handleClick(request)}>View Details</Button>
                   {request.status === "open" && (
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={()=>handleClick(request)}>
                       {/* View Matches ({request.matches.donors + request.matches.volunteers}) */}
                       View Matches 10
                     </Button>

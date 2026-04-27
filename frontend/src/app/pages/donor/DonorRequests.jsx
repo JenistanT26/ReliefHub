@@ -190,11 +190,11 @@ export default function DonorRequests() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-bold text-gray-900 text-lg">
-                      {request.description}
+                      {request.request_code}
                     </h3>
 
                     <p className="text-gray-600">
-                      {request.ngoName || "Relief Organization"}
+                      {request.ngoName || "ABC Relief Organization"}
                     </p>
                   </div>
 
@@ -228,7 +228,7 @@ export default function DonorRequests() {
                       key={idx}
                       className="px-2 py-1 bg-gray-100 rounded text-xs"
                     >
-                      {item.name}
+                      {item.item_name}
                     </span>
 
                   ))}

@@ -32,7 +32,7 @@ export const createReq = async (req,res)=>{
     // Save items
     const itemDocs = items.map((item) => ({
       request_id: request._id,
-      item_name: item.name,
+      item_name: item.item_name,
       quantity: Number(item.quantity),
       category: item.category,
       status:item.critical?"Critical":"Standard"

@@ -8,7 +8,7 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 import Sidebar from "../../components/shared/Sidebar";
@@ -54,7 +54,7 @@ export default function DonorRequestDetail() {
     }
 
     setDonationItems((prev) => [...prev, { ...currentItem }]);
-    setCurrentItem({ item: "", quantity: ""});
+    setCurrentItem({ item: "", quantity: "", deliveryTime: ""});
   };
 
   const handleRemoveItem = (index) => {
@@ -90,8 +90,8 @@ export default function DonorRequestDetail() {
     dispatch(fetchDonationIntentsByRequestId(request._id));
     navigate("/donor/my-donations");
   } catch (err) {
-    console.log(err.message);
-    toast.error("Failed to submit donation intent: " + (err.message || err.error || "error"));
+    console.log("Donation Intent Error:", err);
+    toast.error("Failed to submit donation intent: " + (typeof err === "string" ? err : err?.message || "Internal Error"));
   }
 };
 
@@ -106,10 +106,9 @@ export default function DonorRequestDetail() {
               <Button variant="ghost" size="icon" onClick={() => navigate("/donor/requests")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              {request.description}
+              {request.request_code} <span className="text-gray-500 font-light">({request.disaster_type} Relief)</span>
             </div>
           }
-          subtitle={`${request.disaster_type} Relief`}
           setSidebarOpen={setSidebarOpen} 
         />
 
@@ -122,7 +121,8 @@ export default function DonorRequestDetail() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Building2 className="w-5 h-5 text-gray-400" />
-                      <h2 className="text-xl font-bold text-gray-900">{request.ngo_id}</h2>
+                      {/* <h2 className="text-xl font-bold text-gray-900">{request.ngo_id}</h2> */}
+                      <h2 className="text-xl font-bold text-gray-900">{request.ngo_name || "Relief Organization"}</h2>
                     </div>
                     <PriorityBadge priority={request.urgency} />
                   </div>
@@ -142,7 +142,7 @@ export default function DonorRequestDetail() {
                     <MapPin className="w-5 h-5 text-gray-400" />
                     <div>
                       <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-medium text-gray-900">{request.location?.name}</p>
+                      <p className="font-medium text-gray-900">{request.location?.name || "Chennai,India"}</p>
                     </div>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export default function DonorRequestDetail() {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-gray-900">{item.quantity}</p>
-                        {item.critical && (
+                        {item.status === "Critical" && (
                           <span className="text-xs text-red-600 font-medium">Critical</span>
                         )}
                       </div>
@@ -195,6 +195,9 @@ export default function DonorRequestDetail() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Express Donation Intent</DialogTitle>
+                      <DialogDescription className="sr-only">
+                        Fill out the details to express your donation intent.
+                      </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 mt-4">
@@ -221,7 +224,10 @@ export default function DonorRequestDetail() {
                         />
 
                         <Label>Estimated Delivery Time</Label>
-                        <Select value={currentItem.deliveryTime}>
+                        <Select 
+                          // value={currentItem.deliveryTime} 
+                          // onValueChange={(value) => setCurrentItem({ ...currentItem, deliveryTime: value })}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select timeline" />
                           </SelectTrigger>

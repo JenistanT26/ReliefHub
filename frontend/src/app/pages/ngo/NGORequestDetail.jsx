@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import Header from "../../components/shared/Header";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
-import { fetchRequestById } from "../../store/slices/requestSlice";
+import { fetchRequestById,updateStatusRequest } from "../../store/slices/requestSlice";
 import { useDispatch } from "react-redux";
 
 export default function NGORequestDetail() {
@@ -52,6 +52,12 @@ export default function NGORequestDetail() {
     toast.success("Request locked for resource allocation");
   };
 
+  const handleCloseRequest = (requestId) => {
+    dispatch(updateStatusRequest({id:requestId, status: "closed"}));
+    toast.success("Request closed successfully!");
+    navigate("/ngo/requests");
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -63,10 +69,10 @@ export default function NGORequestDetail() {
               <Button variant="ghost" size="icon" onClick={() => navigate("/ngo/requests")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              {request.id}
+              {request.request_code} <span className="text-gray-500 font-light">({request.disaster_type} Relief Request)</span>
             </div>
           }
-          subtitle={`${request.disaster_type} Relief Request`}
+
           setSidebarOpen={setSidebarOpen} 
         />
 
@@ -158,7 +164,7 @@ export default function NGORequestDetail() {
               </Card>
 
               {/* Matches */}
-              {/* <Card className="p-6">
+              <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Matched Donors & Volunteers ({relatedMatches.length})
                 </h2>
@@ -238,7 +244,7 @@ export default function NGORequestDetail() {
                     </div>
                   )}
                 </div>
-              </Card> */}
+              </Card>
             </div>
 
             {/* Sidebar */}
@@ -260,7 +266,7 @@ export default function NGORequestDetail() {
                   <Button variant="outline" className="w-full">
                     Edit Request
                   </Button>
-                  <Button variant="outline" className="w-full border-red-300 text-red-700 hover:bg-red-50">
+                  <Button onClick={() => handleCloseRequest(request._id)} variant="outline" className="w-full border-red-300 text-red-700 hover:bg-red-50">
                     Close Request
                   </Button>
                 </div>

@@ -45,6 +45,18 @@ export const createRequest = createAsyncThunk(
   }
 );
 
+export const updateStatusRequest = createAsyncThunk(
+  "requests/updateStatus",
+  async ({id, status}, { rejectWithValue }) => {
+    try {
+      const response = await API.patch(`/request/${id}`, { status });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 /* ================================
    Slice
 ================================ */
@@ -109,6 +121,19 @@ const requestSlice = createSlice({
         state.requests.push(action.payload);
       })
       .addCase(createRequest.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* Update Request Status */
+      .addCase(updateStatusRequest.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateStatusRequest.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedRequest = action.payload;
+      })
+      .addCase(updateStatusRequest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

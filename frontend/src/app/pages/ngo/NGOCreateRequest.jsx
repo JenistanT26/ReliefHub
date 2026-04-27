@@ -31,7 +31,7 @@ export default function NGOCreateRequest() {
     items: []
   });
   const [currentItem, setCurrentItem] = useState({
-    name: "",
+    item_name: "",
     quantity: "",
     category: "",
     critical: false
@@ -40,12 +40,12 @@ export default function NGOCreateRequest() {
   // const {requests,loading} = useSelector((state)=>state.requests)
 
   const addItem = () => {
-    if (currentItem.name && currentItem.quantity && currentItem.category) {
+    if (currentItem.item_name && currentItem.quantity && currentItem.category) {
       setFormData({
         ...formData,
         items: [...formData.items, { ...currentItem }]
       });
-      setCurrentItem({ name: "", quantity: "", category: "", critical:false });
+      setCurrentItem({ item_name: "", quantity: "", category: "", critical:false });
     }
   };
 
@@ -156,8 +156,8 @@ export default function NGOCreateRequest() {
                     <Input
                       id="itemName"
                       placeholder="e.g., Food Packets"
-                      value={currentItem.name}
-                      onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })}
+                      value={currentItem.item_name}
+                      onChange={(e) => setCurrentItem({ ...currentItem, item_name: e.target.value })}
                     />
                   </div>
                   <div>
@@ -218,7 +218,7 @@ export default function NGOCreateRequest() {
                       <tbody>
                         {formData.items.map((item) => (
                           <tr key={item.id} className="border-t">
-                            <td className="p-3">{item.name}</td>
+                            <td className="p-3">{item.item_name}</td>
                             <td className="p-3">{item.quantity}</td>
                             <td className="p-3">
                               <span className="px-2 py-1 bg-gray-100 rounded text-sm">{item.category}</span>

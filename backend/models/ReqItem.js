@@ -19,8 +19,8 @@ const requestItemSchema = new mongoose.Schema({
   },
   
   quantity_fullfilled: {
+    default:0,
     type: Number,
-    required: true,
   },
 
   status:{
