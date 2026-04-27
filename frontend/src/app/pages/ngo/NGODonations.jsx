@@ -4,6 +4,7 @@ import Sidebar from "../../components/shared/Sidebar";
 import StatusBadge from "../../components/shared/StatusBadge";
 import { Heart, TrendingUp, Package, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import Header from "../../components/shared/Header";
 
 export default function NGODonations() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,12 +34,11 @@ export default function NGODonations() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Donations Received</h1>
-            <p className="text-gray-600">Track all donations for your relief requests</p>
-          </div>
-        </div>
+        <Header 
+          title="Donations Received" 
+          subtitle="Track all donations for your relief requests" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Stats */}

@@ -5,6 +5,7 @@ import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import { Building2, FileText, Users, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { mockNGOs, mockRequests, stats } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 
 export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -36,12 +37,11 @@ export default function AdminDashboard() {
       <Sidebar role="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600">System overview and management</p>
-          </div>
-        </div>
+        <Header 
+          title="Admin Dashboard" 
+          subtitle="System overview and management" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Stats Cards */}

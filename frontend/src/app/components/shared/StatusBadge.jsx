@@ -22,8 +22,8 @@ const statusConfig = {
     label: "Pending",
     className: "bg-gray-100 text-gray-700 border-gray-300"
   },
-  accepted: {
-    label: "Accepted",
+  matched: {
+    label: "Matched",
     className: "bg-green-100 text-green-700 border-green-300"
   },
   completed: {

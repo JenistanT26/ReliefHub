@@ -7,6 +7,7 @@ import PriorityBadge from "../../components/shared/PriorityBadge";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import { Heart, MapPin, Package, CheckCircle } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 
 export default function DonorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,22 +25,19 @@ export default function DonorDashboard() {
       <Sidebar role="donor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Donor Dashboard</h1>
-                <p className="text-gray-600">Welcome back, Rajesh Kumar</p>
-              </div>
-              <Link to="/donor/requests">
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Browse Requests
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <Header 
+          title="Donor Dashboard" 
+          subtitle="Welcome back, Rajesh Kumar" 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <Link to="/donor/requests">
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Heart className="w-4 h-4 mr-2" />
+                Browse Requests
+              </Button>
+            </Link>
+          }
+        />
 
         <div className="p-6">
           {/* Stats Cards */}

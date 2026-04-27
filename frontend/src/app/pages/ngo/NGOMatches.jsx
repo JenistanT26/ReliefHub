@@ -7,6 +7,7 @@ import StatusBadge from "../../components/shared/StatusBadge";
 import { User, MapPin, CheckCircle, X } from "lucide-react";
 import { mockMatches } from "../../data/mockData";
 import { toast } from "sonner";
+import Header from "../../components/shared/Header";
 
 export default function NGOMatches() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,12 +28,11 @@ export default function NGOMatches() {
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Matches</h1>
-            <p className="text-gray-600">AI-matched donors and volunteers for your requests</p>
-          </div>
-        </div>
+        <Header 
+          title="Matches" 
+          subtitle="AI-matched donors and volunteers for your requests" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <Tabs defaultValue="donors">
