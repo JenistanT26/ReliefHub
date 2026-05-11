@@ -1,18 +1,33 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import StatusBadge from "../../components/shared/StatusBadge";
-import { Search, Filter, MapPin, Package } from "lucide-react";
+import { Search, Filter, MapPin, Package, Calendar, Activity } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
+import Header from "../../components/shared/Header";
+import { fetchRequests, setSelectedRequest } from "../../store/slices/requestSlice.js";
+import { useSelector,useDispatch } from "react-redux";
+import useReverseGeocoding from "../../components/shared/ReverseGeocoding.js";
 
 export default function NGOMyRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  // const [details, setDetails] = useState([])
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const {requests,loading,error} = useSelector((state) => state.requests)
+ 
+  function Address({ lat,lng }) {
+  const { address, loading } = useReverseGeocoding(lat, lng);
+  console.log("HOOK RUNNING:", lat, lng);
+
+  return <span>{loading ? "..." : address}</span>;
+}
 
   const myRequests = mockRequests.filter(r => r.ngoId === "NGO-001");
 
@@ -24,17 +39,39 @@ export default function NGOMyRequests() {
     return matchesSearch && matchesFilter;
   });
 
+  const handleClick = (request) => {
+    // console.log(request)
+    dispatch(setSelectedRequest(request))
+    navigate(`/ngo/requests/${request._id}`)
+  }
+  // useEffect(()=>{
+  //   async function fetchData() {
+  //     const response = await API.get('/request')
+  //     console.log(response.data.data)
+  //     setDetails(response.data.data)
+  //     // console.log(details)
+  //   }
+  //   fetchData()
+  // },[dispatch])
+  useEffect(()=>{
+    dispatch(fetchRequests())
+  },[dispatch])
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
-            <p className="text-gray-600">View and manage all your relief requests</p>
-          </div>
-        </div>
+        <Header 
+          title="My Requests" 
+          subtitle="Manage your outgoing relief requests and their matched responses." 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <Link to="/ngo/create-request">
+              <Button className="bg-blue-600 hover:bg-blue-700">Create New Request</Button>
+            </Link>
+          }
+        />
 
         <div className="p-6">
           {/* Filters */}
@@ -84,74 +121,119 @@ export default function NGOMyRequests() {
 
           {/* Requests Grid */}
           <div className="grid gap-6">
-            {filteredRequests.map((request) => (
-              <Card key={request.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">{request.id}</h3>
-                      <StatusBadge status={request.status} />
-                      <PriorityBadge priority={request.urgency} />
-                    </div>
-                    <p className="text-gray-600">{request.disasterType} Relief</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600 mb-1">AI Priority Score</div>
-                    <div className="text-3xl font-bold text-blue-600">{request.priority}</div>
-                  </div>
-                </div>
+              {loading ? (
+                <p>Loading...</p>
+              ) : error ? (
+                <p className="text-red-500">Error loading requests</p>
+              ) : Array.isArray(requests) && requests.length > 0 ? (
+                requests
+                  .filter((request) => {
+                    if (!request) return false;
 
-                <p className="text-gray-700 mb-4">{request.description}</p>
+                    const matchesSearch =
+                      request.request_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      request.disaster_type?.toLowerCase().includes(searchTerm.toLowerCase());
 
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-medium text-gray-900">{request.location.name}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Package className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-600">Items Required</p>
-                      <p className="font-medium text-gray-900">{request.items.length} items</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Matches Found</p>
-                    <p className="font-medium text-gray-900">
-                      {request.matches.donors} donors, {request.matches.volunteers} volunteers
-                    </p>
-                  </div>
-                </div>
+                    const matchesFilter =
+                      filterStatus === "all" || request.status === filterStatus;
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {request.items.slice(0, 3).map((item, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
-                      {item.name} ({item.quantity})
-                    </span>
-                  ))}
-                  {request.items.length > 3 && (
-                    <span className="px-3 py-1 bg-gray-200 rounded-full text-sm font-medium">
-                      +{request.items.length - 3} more
-                    </span>
-                  )}
-                </div>
+                    return matchesSearch && matchesFilter;
+                  })
+                  .map((request) => {
+                    if (!request) return null;
 
-                <div className="flex gap-3 pt-4 border-t">
-                  <Link to={`/ngo/requests/${request.id}`} className="flex-1">
-                    <Button variant="outline" className="w-full">View Details</Button>
-                  </Link>
-                  {request.status === "open" && (
-                    <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
-                      View Matches ({request.matches.donors + request.matches.volunteers})
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
+                    return (
+                      <Card key={request._id} className="p-6 hover:shadow-lg transition-shadow">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-bold text-gray-900">
+                                {request.request_code || "N/A"}
+                              </h3>
+                              <StatusBadge status={request.status} />
+                              <PriorityBadge priority={request.urgency_level} />
+                            </div>
+                            <p className="text-gray-600">
+                              {request.disaster_type || "Unknown"} Relief
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600 mb-1">AI Priority Score</div>
+                            <div className="text-3xl font-bold text-blue-600">
+                              {Math.round(request.ai_priority_score * 100) / 100 || 0}
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-gray-700 mb-4">
+                          {request.description || "No description"}
+                        </p>
+
+                        <div className="grid md:grid-cols-3 gap-4 mb-4">
+                          <div className="flex items-start gap-2">
+                            <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-600">Location</p>
+                              <p className="font-medium text-gray-900">
+                                <Address
+                                  lat={request.location.coordinates[1]}
+                                  lng={request.location.coordinates[0]}
+                                />
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-2">
+                            <Package className="w-5 h-5 text-gray-400 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-600">Items Required</p>
+                              <p className="font-medium text-gray-900">
+                                {request.items?.length || 0} items
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {request.items?.slice(0, 3).map((item, idx) => (
+                            <span key={idx} className="px-3 py-1 bg-gray-100 rounded-full text-sm">
+                              {item.item_name} ({item.quantity})
+                            </span>
+                          ))}
+
+                          {request.items?.length > 3 && (
+                            <span className="px-3 py-1 bg-gray-200 rounded-full text-sm font-medium">
+                              +{request.items.length - 3} more
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex gap-3 pt-4 border-t">
+                          <Button
+                            variant="outline"
+                            className="w-full flex-1"
+                            onClick={() => handleClick(request)}
+                          >
+                            View Details
+                          </Button>
+
+                          {request.status === "open" && (
+                            <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                              View Matches
+                            </Button>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })
+              ) : (
+                <Card className="p-12 text-center">
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">
+                    No requests found
+                  </h3>
+                </Card>
+              )}
+            </div>
 
           {filteredRequests.length === 0 && (
             <Card className="p-12 text-center">

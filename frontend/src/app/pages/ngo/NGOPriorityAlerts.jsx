@@ -4,32 +4,40 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import Sidebar from "../../components/shared/Sidebar";
 import PriorityBadge from "../../components/shared/PriorityBadge";
-import { AlertTriangle, Clock, MapPin } from "lucide-react";
-import { mockRequests } from "../../data/mockData";
+import { AlertTriangle, Clock, MapPin, Loader2 } from "lucide-react";
+import Header from "../../components/shared/Header";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchRequests } from "../../store/slices/requestSlice";
+import { useEffect } from "react";
 
 export default function NGOPriorityAlerts() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filter, setFilter] = useState("all");
 
-  const myRequests = mockRequests.filter(r => r.ngoId === "NGO-001");
+  const dispatch = useDispatch();
+  const { requests, loading } = useSelector((state) => state.requests);
+
+  useEffect(() => {
+    dispatch(fetchRequests());
+  }, [dispatch]);
+
   const filteredRequests = filter === "all" 
-    ? myRequests 
-    : myRequests.filter(r => r.urgency === filter);
+    ? requests 
+    : requests.filter(r => (r.urgency_level || r.urgency) === filter);
 
   // Sort by priority (highest first)
-  const sortedRequests = [...filteredRequests].sort((a, b) => b.priority - a.priority);
+  const sortedRequests = [...filteredRequests].sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Priority Alerts</h1>
-            <p className="text-gray-600">Requests sorted by AI priority score</p>
-          </div>
-        </div>
+        <Header 
+          title="Priority Alerts" 
+          subtitle="Requests sorted by AI priority score" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Filters */}
@@ -64,25 +72,34 @@ export default function NGOPriorityAlerts() {
           </div>
 
           {/* Alerts Grid */}
-          <div className="grid gap-4">
-            {sortedRequests.map((request) => (
-              <Card
-                key={request.id}
-                className={`p-6 transition-all ${
-                  request.urgency === "high"
-                    ? "border-l-4 border-l-red-500 bg-red-50/50"
-                    : request.urgency === "medium"
-                    ? "border-l-4 border-l-orange-500"
-                    : "border-l-4 border-l-green-500"
-                }`}
-              >
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {sortedRequests.map((request) => {
+                const urgency = request.urgency_level || request.urgency || "low";
+                const priorityScore = Math.round(request.ai_priority_score * 100) / 100  || 0;
+                
+                return (
+                <Card
+                  key={request._id || request.id}
+                  className={`p-6 transition-all ${
+                    urgency === "high"
+                      ? "border-l-4 border-l-red-500 bg-red-50/50"
+                      : urgency === "medium"
+                      ? "border-l-4 border-l-orange-500"
+                      : "border-l-4 border-l-green-500"
+                  }`}
+                >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start gap-4 flex-1">
                     <div
                       className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        request.urgency === "high"
+                        urgency === "high"
                           ? "bg-red-600"
-                          : request.urgency === "medium"
+                          : urgency === "medium"
                           ? "bg-orange-600"
                           : "bg-green-600"
                       }`}
@@ -91,18 +108,18 @@ export default function NGOPriorityAlerts() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-gray-900">{request.id}</h3>
-                        <PriorityBadge priority={request.urgency} />
+                        <h3 className="text-lg font-bold text-gray-900">{request.request_code || request._id}</h3>
+                        <PriorityBadge priority={urgency} />
                       </div>
-                      <p className="text-gray-700 mb-3">{request.description}</p>
+                      <p className="text-gray-700 mb-3">{request.description || (request.disaster_type ? `${request.disaster_type} Relief` : "No description")}</p>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
-                          {request.location.name}
+                          {request.location?.name || "Unknown Location"}
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {new Date(request.createdAt).toLocaleString()}
+                          {request.createdAt ? new Date(request.createdAt).toLocaleString() : "Unknown Time"}
                         </div>
                       </div>
                     </div>
@@ -111,40 +128,41 @@ export default function NGOPriorityAlerts() {
                     <div className="text-sm text-gray-600 mb-1">Priority Score</div>
                     <div
                       className={`text-3xl font-bold ${
-                        request.priority >= 80
+                        priorityScore >= 80
                           ? "text-red-600"
-                          : request.priority >= 60
+                          : priorityScore >= 60
                           ? "text-orange-600"
                           : "text-green-600"
                       }`}
                     >
-                      {request.priority}
+                      {priorityScore > 0 ? priorityScore : "N/A"}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex gap-2">
-                    {request.items.slice(0, 3).map((item, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-white rounded text-sm">
-                        {item.name}
+                    {(request.items || []).slice(0, 3).map((item, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-sm">
+                        {item.item_name || item.name}
                       </span>
                     ))}
-                    {request.items.length > 3 && (
+                    {(request.items || []).length > 3 && (
                       <span className="px-2 py-1 bg-gray-200 rounded text-sm">
-                        +{request.items.length - 3}
+                        +{(request.items || []).length - 3}
                       </span>
                     )}
                   </div>
-                  <Link to={`/ngo/requests/${request.id}`}>
+                  <Link to={`/ngo/requests/${request._id || request.id}`}>
                     <Button size="sm" variant="outline">
                       View Details
                     </Button>
                   </Link>
                 </div>
               </Card>
-            ))}
-          </div>
+              )})}
+            </div>
+          )}
 
           {sortedRequests.length === 0 && (
             <Card className="p-12 text-center">

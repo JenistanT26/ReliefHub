@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchRequests } from "../../store/slices/requestSlice";
+import { fetchDonationIntents } from "../../store/slices/donoritemSlice";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import Sidebar from "../../components/shared/Sidebar";
@@ -7,21 +10,31 @@ import { Bell, FileText, Users, CheckCircle, AlertTriangle, TrendingUp, MapPin }
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { mockRequests } from "../../data/mockData";
 import MapPlaceholder from "../../components/shared/MapPlaceholder";
+import Header from "../../components/shared/Header";
 
 export default function NGODashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const dispatch = useDispatch();
+  const { requests, loading } = useSelector((state) => state.requests);
+  const { donationIntents } = useSelector((state) => state.donorItems);
+
+  useEffect(() => {
+    dispatch(fetchRequests());
+    dispatch(fetchDonationIntents());
+  }, [dispatch]);
+
   const stats = {
-    totalRequests: 45,
-    activeRequests: 12,
-    fulfilledRequests: 28,
-    pendingMatches: 18
+    totalRequests: requests.length,
+    activeRequests: requests.filter(r => r.status === "open").length,
+    fulfilledRequests: requests.filter(r => r.status === "fulfilled").length,
+    pendingMatches: donationIntents ? donationIntents.filter(d => d.status === "pending").length : 0
   };
 
   const priorityData = [
-    { name: "High", value: 8, color: "#ef4444" },
-    { name: "Medium", value: 15, color: "#f97316" },
-    { name: "Low", value: 22, color: "#22c55e" }
+    { name: "High", value: requests.filter(r => (r.urgency_level || r.urgency) === "high").length, color: "#ef4444" },
+    { name: "Medium", value: requests.filter(r => (r.urgency_level || r.urgency) === "medium").length, color: "#f97316" },
+    { name: "Low", value: requests.filter(r => (r.urgency_level || r.urgency) === "low").length, color: "#22c55e" }
   ];
 
   const monthlyData = [
@@ -31,39 +44,36 @@ export default function NGODashboard() {
     { month: "Apr", requests: 15 }
   ];
 
-  const myRequests = mockRequests.filter(r => r.ngoId === "NGO-001");
-  const recentRequests = myRequests.slice(0, 3);
+  const recentRequests = [...requests]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">NGO Dashboard</h1>
-                <p className="text-gray-600">Welcome back, Red Cross India</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Link to="/notifications">
-                  <Button variant="outline" size="icon" className="relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </Button>
-                </Link>
-                <Link to="/ngo/create-request">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Create Request
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Header 
+          title="NGO Dashboard" 
+          subtitle="Welcome back, Red Cross India" 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <>
+              <Link to="/notifications">
+                <Button variant="outline" size="icon" className="relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </Button>
+              </Link>
+              <Link to="/ngo/create-request">
+                <Button className="hidden sm:flex bg-blue-600 hover:bg-blue-700">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Create Request
+                </Button>
+              </Link>
+            </>
+          }
+        />
 
         <div className="p-6">
           {/* Stats Cards */}
@@ -193,26 +203,26 @@ export default function NGODashboard() {
               </div>
               <div className="space-y-3">
                 {recentRequests.map((request) => (
-                  <div key={request.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div key={request._id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-gray-900">{request.id}</p>
-                        <p className="text-sm text-gray-600">{request.disasterType} Relief</p>
+                        <p className="font-medium text-gray-900">{request.request_code || request._id}</p>
+                        <p className="text-sm text-gray-600">{request.disaster_type || request.disasterType} Relief</p>
                       </div>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        request.urgency === 'high' ? 'bg-red-100 text-red-700' :
-                        request.urgency === 'medium' ? 'bg-orange-100 text-orange-700' :
+                        (request.urgency_level || request.urgency) === 'high' ? 'bg-red-100 text-red-700' :
+                        (request.urgency_level || request.urgency) === 'medium' ? 'bg-orange-100 text-orange-700' :
                         'bg-green-100 text-green-700'
                       }`}>
-                        {request.urgency.toUpperCase()}
+                        {String(request.urgency_level || request.urgency).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
-                      {request.location.name}
+                      {request.location?.name || "Unknown Location"}
                     </div>
                     <div className="mt-2 text-sm text-gray-600">
-                      AI Score: <span className="font-medium text-blue-600">{request.priority}</span>
+                      AI Score: <span className="font-medium text-blue-600">{request.priority || "N/A"}</span>
                     </div>
                   </div>
                 ))}

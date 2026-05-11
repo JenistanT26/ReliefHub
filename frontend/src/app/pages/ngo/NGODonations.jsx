@@ -1,44 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Card } from "../../components/ui/card";
 import Sidebar from "../../components/shared/Sidebar";
 import StatusBadge from "../../components/shared/StatusBadge";
 import { Heart, TrendingUp, Package, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import Header from "../../components/shared/Header";
+import { fetchDonationIntents } from "../../store/slices/donoritemSlice";
 
 export default function NGODonations() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const dispatch = useDispatch();
+  
+  const { donationIntents, loading, error } = useSelector((state) => state.donorItems);
 
-  const donations = [
-    { id: "DON-001", donor: "Rajesh Kumar", items: "Food Packets (200)", requestId: "REQ-001", date: "2026-02-19", status: "delivered" },
-    { id: "DON-002", donor: "Priya Sharma", items: "Water Bottles (500)", requestId: "REQ-001", date: "2026-02-18", status: "in-transit" },
-    { id: "DON-003", donor: "Amit Patel", items: "Blankets (150)", requestId: "REQ-002", date: "2026-02-17", status: "delivered" },
-    { id: "DON-004", donor: "Sneha Gupta", items: "Medical Supplies (100)", requestId: "REQ-002", date: "2026-02-16", status: "delivered" }
-  ];
+  useEffect(() => {
+    dispatch(fetchDonationIntents());
+  }, [dispatch]);
 
-  const monthlyData = [
-    { month: "Jan", donations: 18 },
-    { month: "Feb", donations: 24 },
-    { month: "Mar", donations: 19 },
-    { month: "Apr", donations: 28 }
-  ];
+  // Derived dynamic stats
+  const stats = useMemo(() => {
+    if (!donationIntents) return { totalDonations: 0, activeDonors: 0, valueReceived: 0 };
+    
+    const uniqueDonors = new Set(donationIntents.map(d => d.donor_id));
+    const totalQty = donationIntents.reduce((sum, d) => sum + (d.quantity_offered || 0), 0);
+    
+    return {
+      totalDonations: donationIntents.length,
+      activeDonors: uniqueDonors.size,
+      valueReceived: totalQty, // Approximate value as total items
+    };
+  }, [donationIntents]);
 
-  const stats = {
-    totalDonations: 89,
-    activeDonors: 45,
-    valueReceived: "₹12.5L"
-  };
+  // Derived dynamic monthly data
+  const monthlyData = useMemo(() => {
+    if (!donationIntents) return [];
+    
+    const monthCounts = {};
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    donationIntents.forEach(d => {
+      const date = new Date(d.createdAt);
+      if (!isNaN(date)) {
+        const month = months[date.getMonth()];
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      }
+    });
+    
+    // Convert to array format for Recharts
+    return Object.keys(monthCounts).map(month => ({
+      month,
+      donations: monthCounts[month]
+    }));
+  }, [donationIntents]);
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar role="ngo" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Donations Received</h1>
-            <p className="text-gray-600">Track all donations for your relief requests</p>
-          </div>
-        </div>
+        <Header 
+          title="Donations Received" 
+          subtitle="Track all donations for your relief requests" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           {/* Stats */}
@@ -55,7 +80,7 @@ export default function NGODonations() {
               </div>
               <div className="mt-4 flex items-center text-sm text-green-600">
                 <TrendingUp className="w-4 h-4 mr-1" />
-                18% from last month
+                Dynamic from DB
               </div>
             </Card>
 
@@ -74,7 +99,7 @@ export default function NGODonations() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Estimated Value</p>
+                  <p className="text-sm text-gray-600">Total Items Received</p>
                   <p className="text-3xl font-bold text-gray-900 mt-1">{stats.valueReceived}</p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -88,13 +113,19 @@ export default function NGODonations() {
           <Card className="p-6 mb-6">
             <h3 className="font-bold text-gray-900 mb-4">Monthly Donations Trend</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="donations" fill="#22c55e" radius={[8, 8, 0, 0]} />
-              </BarChart>
+              {monthlyData.length > 0 ? (
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="donations" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  No donation data available
+                </div>
+              )}
             </ResponsiveContainer>
           </Card>
 
@@ -114,18 +145,36 @@ export default function NGODonations() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donations.map((donation) => (
-                    <tr key={donation.id} className="border-t hover:bg-gray-50">
-                      <td className="p-3 font-medium">{donation.id}</td>
-                      <td className="p-3">{donation.donor}</td>
-                      <td className="p-3">{donation.items}</td>
-                      <td className="p-3 text-blue-600">{donation.requestId}</td>
-                      <td className="p-3">{donation.date}</td>
-                      <td className="p-3">
-                        <StatusBadge status={donation.status === "delivered" ? "completed" : "pending"} />
-                      </td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="p-4 text-center text-gray-500">Loading donations...</td>
                     </tr>
-                  ))}
+                  ) : error ? (
+                    <tr>
+                      <td colSpan="6" className="p-4 text-center text-red-500">Error loading donations: {error}</td>
+                    </tr>
+                  ) : donationIntents && donationIntents.length > 0 ? (
+                    donationIntents.map((donation) => (
+                      <tr key={donation._id} className="border-t hover:bg-gray-50">
+                        <td className="p-3 font-medium">{donation._id.substring(0, 8)}...</td>
+                        <td className="p-3">{donation.donor_item_id?.donor_id?.name || "Unknown Donor"}</td>
+                        <td className="p-3">
+                          {donation.donor_item_id?.item_name || "Item"} ({donation.quantity_offered})
+                        </td>
+                        <td className="p-3 text-blue-600">
+                          {donation.relief_request_id?.request_code || donation.relief_request_id?._id?.substring(0, 8) || "N/A"}
+                        </td>
+                        <td className="p-3">{new Date(donation.createdAt).toLocaleDateString()}</td>
+                        <td className="p-3">
+                          <StatusBadge status={donation.status === "completed" || donation.status === "approved" ? "completed" : "pending"} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-4 text-center text-gray-500">No donations found</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

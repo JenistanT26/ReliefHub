@@ -3,6 +3,7 @@ import { Card } from "../../components/ui/card";
 import Sidebar from "../../components/shared/Sidebar";
 import StatusBadge from "../../components/shared/StatusBadge";
 import { MapPin, Calendar, Award } from "lucide-react";
+import Header from "../../components/shared/Header";
 
 export default function VolunteerHistory() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,12 +49,11 @@ export default function VolunteerHistory() {
       <Sidebar role="volunteer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Task History</h1>
-            <p className="text-gray-600">Your volunteering journey</p>
-          </div>
-        </div>
+        <Header 
+          title="Task History" 
+          subtitle="Your volunteering journey" 
+          setSidebarOpen={setSidebarOpen} 
+        />
 
         <div className="p-6">
           <div className="grid gap-6">

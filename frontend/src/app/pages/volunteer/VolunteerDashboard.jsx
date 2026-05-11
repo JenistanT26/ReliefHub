@@ -7,6 +7,7 @@ import MapPlaceholder from "../../components/shared/MapPlaceholder";
 import PriorityBadge from "../../components/shared/PriorityBadge";
 import { CheckCircle, Clock, Award, MapPin } from "lucide-react";
 import { mockRequests } from "../../data/mockData";
+import Header from "../../components/shared/Header";
 
 export default function VolunteerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,21 +25,18 @@ export default function VolunteerDashboard() {
       <Sidebar role="volunteer" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 overflow-auto">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Volunteer Dashboard</h1>
-                <p className="text-gray-600">Welcome back, Amit Singh</p>
-              </div>
-              <Link to="/volunteer/tasks">
-                <Button className="bg-orange-600 hover:bg-orange-700">
-                  View All Tasks
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <Header 
+          title="Volunteer Dashboard" 
+          subtitle="Welcome back, Amit Singh" 
+          setSidebarOpen={setSidebarOpen} 
+          actions={
+            <Link to="/volunteer/tasks">
+              <Button className="bg-orange-600 hover:bg-orange-700">
+                View All Tasks
+              </Button>
+            </Link>
+          }
+        />
 
         <div className="p-6">
           {/* Stats Cards */}
