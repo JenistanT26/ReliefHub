@@ -124,7 +124,11 @@ export default function NGORegister() {
 
             <div>
               <Label>Location *</Label>
-              <MapPlaceholder location={formData.location} className="h-48 mt-2" />
+              <MapPlaceholder 
+                location={formData.location} 
+                className="h-48 mt-2" 
+                onLocationChange={(coords) => setFormData({ ...formData, location: { ...formData.location, lat: coords.lat, lng: coords.lng } })}
+              />
               <p className="text-sm text-gray-500 mt-2">Click on map to set your NGO location</p>
             </div>
 

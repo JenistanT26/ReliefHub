@@ -21,6 +21,7 @@
   "homepage": "https://github.com/JenistanT26/ReliefHub#readme",
   "description": "",
   "dependencies": {
+    "@react-google-maps/api": "^2.20.8",
     "axios": "^1.15.2",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

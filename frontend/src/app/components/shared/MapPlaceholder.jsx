@@ -1,161 +1,143 @@
 import {
-  MapContainer,
-  TileLayer,
+  GoogleMap,
   Marker,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
-import { useState, useEffect } from "react";
-import L from "leaflet";
+  useJsApiLoader,
+} from "@react-google-maps/api";
+import { useState, useEffect, useCallback } from "react";
 import { MapPin } from "lucide-react";
 
-const markerIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-// Fix map rendering issues (modals, hidden divs)
-function FixMapSize() {
-  const map = useMap();
-
-  useEffect(() => {
-    const container = map.getContainer();
-
-    const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize();
-    });
-
-    resizeObserver.observe(container);
-
-    // Initial fix
-    setTimeout(() => map.invalidateSize(), 0);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [map]);
-
-  return null;
-}
-
-// Auto move + zoom when location changes
-function RecenterMap({ position }) {
-  const map = useMap();
-
-  useEffect(() => {
-    map.flyTo(position, 13);
-  }, [position, map]);
-
-  return null;
-}
-
-// Handle clicks + dragging
-function LocationMarker({ position, setPosition }) {
-  useMapEvents({
-    click(e) {
-      setPosition([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-
-  return (
-    <Marker
-      position={position}
-      draggable
-      icon={markerIcon}
-      eventHandlers={{
-        dragend: (e) => {
-          const latlng = e.target.getLatLng();
-          setPosition([latlng.lat, latlng.lng]);
-        },
-      }}
-    />
-  );
-}
+const containerStyle = {
+  width: "100%",
+  height: "16rem",
+};
 
 export default function MapPlaceholder({
   location,
   onLocationChange,
   className = "",
 }) {
-  const defaultPos = [
-    location?.lat || 13.0827,
-    location?.lng || 80.2707,
-  ];
+  // Default = Chennai
+  const defaultPos = {
+    lat: location?.lat || 13.0827,
+    lng: location?.lng || 80.2707,
+  };
 
   const [position, setPosition] = useState(defaultPos);
   const [address, setAddress] = useState("");
+  const [map, setMap] = useState(null);
 
-  // Sync external updates
+  // Load Google Maps
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+  });
+
+  // Sync external location updates
   useEffect(() => {
     if (location?.lat && location?.lng) {
-      setPosition([location.lat, location.lng]);
+      setPosition({
+        lat: location.lat,
+        lng: location.lng,
+      });
     }
   }, [location]);
 
-  // Reverse geocoding (lat/lng → address)
+  // Auto move map
+  useEffect(() => {
+    if (map) {
+      map.panTo(position);
+      map.setZoom(13);
+    }
+  }, [position, map]);
+
+  // Reverse geocoding
   const fetchAddress = async (lat, lng) => {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      const geocoder = new window.google.maps.Geocoder();
+
+      geocoder.geocode(
+        {
+          location: { lat, lng },
+        },
+        (results, status) => {
+          if (status === "OK" && results[0]) {
+            setAddress(results[0].formatted_address);
+          }
+        }
       );
-      const data = await res.json();
-      setAddress(data.display_name || "");
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Update location
   const updateLocation = (coords) => {
     setPosition(coords);
 
     onLocationChange?.({
-      lat: coords[0],
-      lng: coords[1],
+      lat: coords.lat,
+      lng: coords.lng,
     });
 
-    fetchAddress(coords[0], coords[1]);
+    fetchAddress(coords.lat, coords.lng);
   };
 
-  // GPS button
+  // Click on map
+  const handleMapClick = useCallback((e) => {
+    updateLocation({
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    });
+  }, []);
+
+  // GPS
   const getCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (res) => {
-        const coords = [res.coords.latitude, res.coords.longitude];
-        updateLocation(coords);
+        updateLocation({
+          lat: res.coords.latitude,
+          lng: res.coords.longitude,
+        });
       },
       () => alert("Unable to fetch location")
     );
   };
 
+  if (!isLoaded) {
+    return <p>Loading Map...</p>;
+  }
+
   return (
     <div className={`rounded-lg overflow-hidden ${className}`}>
-      <MapContainer
+      <GoogleMap
+        mapContainerStyle={containerStyle}
         center={position}
         zoom={13}
-        scrollWheelZoom
-        className="h-64 w-full"
+        onLoad={(mapInstance) => setMap(mapInstance)}
+        onClick={handleMapClick}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+        }}
       >
-        <TileLayer
-          attribution="© OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        <FixMapSize />
-        <RecenterMap position={position} />
-
-        <LocationMarker
+        <Marker
           position={position}
-          setPosition={updateLocation}
+          draggable
+          onDragEnd={(e) =>
+            updateLocation({
+              lat: e.latLng.lat(),
+              lng: e.latLng.lng(),
+            })
+          }
         />
-      </MapContainer>
+      </GoogleMap>
 
-      {/* Bottom info panel */}
+      {/* Bottom Info */}
       <div className="p-3 bg-white border-t space-y-1">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-blue-600" />
-            {position[0].toFixed(4)}, {position[1].toFixed(4)}
+            {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
           </div>
 
           <button

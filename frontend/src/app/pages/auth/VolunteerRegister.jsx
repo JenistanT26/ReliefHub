@@ -142,7 +142,11 @@ export default function VolunteerRegister() {
 
             <div>
               <Label>Location *</Label>
-              <MapPlaceholder location={formData.location} className="h-48 mt-2" />
+              <MapPlaceholder 
+                location={formData.location} 
+                className="h-48 mt-2" 
+                onLocationChange={(coords) => setFormData({ ...formData, location: { ...formData.location, lat: coords.lat, lng: coords.lng } })}
+              />
               <p className="text-sm text-gray-500 mt-2">Set your location to find nearby volunteering opportunities</p>
             </div>
 
