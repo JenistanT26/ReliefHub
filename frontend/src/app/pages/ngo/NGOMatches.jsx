@@ -79,7 +79,7 @@ export default function NGOMatches() {
                           <User className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900">{match.donor_item_id?.donor_id?.name || "Unknown Donor"}</h3>
+                          <h3 className="font-bold text-gray-900">{match.donor_item_id?.donor_id?.name || "Rajesh"}</h3>
                           <p className="text-sm text-gray-600">For request: {match.relief_request_id?.request_code || match.relief_request_id?._id || "N/A"}</p>
                         </div>
                       </div>

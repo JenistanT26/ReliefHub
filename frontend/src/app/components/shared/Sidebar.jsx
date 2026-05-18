@@ -43,7 +43,7 @@ const roleMenus = {
   volunteer: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/volunteer/dashboard" },
     { icon: List, label: "Nearby Requests", path: "/volunteer/tasks" },
-    { icon: CheckSquare, label: "Assigned Tasks", path: "/volunteer/tasks" },
+    // { icon: CheckSquare, label: "Assigned Tasks", path: "/volunteer/tasks" },
     { icon: History, label: "History", path: "/volunteer/history" },
     { icon: User, label: "Profile", path: "/profile" }
   ],

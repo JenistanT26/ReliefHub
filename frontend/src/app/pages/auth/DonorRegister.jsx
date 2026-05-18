@@ -131,11 +131,7 @@ export default function DonorRegister() {
                 <p className="text-sm text-gray-600 mb-2">
                   Help us show you nearby relief requests that you can support
                 </p>
-                <MapPlaceholder 
-                  location={formData.location} 
-                  className="h-48" 
-                  onLocationChange={(coords) => setFormData({ ...formData, location: { ...formData.location, lat: coords.lat, lng: coords.lng } })}
-                />
+                <MapPlaceholder location={formData.location} className="h-48" />
               </div>
 
               <div className="flex items-start gap-2">

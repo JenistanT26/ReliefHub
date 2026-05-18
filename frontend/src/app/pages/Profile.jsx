@@ -114,11 +114,7 @@ export default function Profile() {
 
                 <div>
                   <Label>Location</Label>
-                  <MapPlaceholder 
-                    location={profile.location} 
-                    className="h-48 mt-2" 
-                    onLocationChange={(coords) => setProfile({ ...profile, location: { ...profile.location, lat: coords.lat, lng: coords.lng } })}
-                  />
+                  <MapPlaceholder location={profile.location} className="h-48 mt-2" />
                 </div>
 
                 <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700">

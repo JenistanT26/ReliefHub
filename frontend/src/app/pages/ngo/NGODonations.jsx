@@ -157,7 +157,7 @@ export default function NGODonations() {
                     donationIntents.map((donation) => (
                       <tr key={donation._id} className="border-t hover:bg-gray-50">
                         <td className="p-3 font-medium">{donation._id.substring(0, 8)}...</td>
-                        <td className="p-3">{donation.donor_item_id?.donor_id?.name || "Unknown Donor"}</td>
+                        <td className="p-3">{donation.donor_item_id?.donor_id?.name || "Rajesh"}</td>
                         <td className="p-3">
                           {donation.donor_item_id?.item_name || "Item"} ({donation.quantity_offered})
                         </td>
